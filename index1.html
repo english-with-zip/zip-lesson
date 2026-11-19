@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mission: Help Zip! — Lesson 1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg1:#1b1f4b; --bg2:#2b2f78; --card:#ffffff; --ink:#1f2340; --muted:#6b7090;
+    --zip:#5fd38d; --zipdark:#2fa866; --sun:#ffc93c; --pink:#ff6fa5; --sky:#5ec8ff; --violet:#8b7bff;
+    --ok:#22b573; --bad:#ff5a5f; --radius:22px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    font-family:"Nunito",system-ui,sans-serif;color:var(--ink);
+    background:radial-gradient(1200px 700px at 80% -10%,#3b3fa0 0%,transparent 60%),linear-gradient(180deg,var(--bg1),var(--bg2));
+    background-attachment:fixed;min-height:100vh;overflow-x:hidden;
+  }
+  #stars-bg{position:fixed;inset:0;pointer-events:none;z-index:0}
+  .wrap{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:14px 16px 28px}
+  h1,h2,h3,.big{font-family:"Baloo 2","Nunito",system-ui,sans-serif;margin:0}
+  /* top bar */
+  .topbar{display:flex;align-items:center;gap:12px;color:#fff;margin-bottom:12px;flex-wrap:wrap}
+  .brand{font-family:"Baloo 2","Nunito",sans-serif;font-weight:800;font-size:22px;letter-spacing:.3px;display:flex;align-items:center;gap:8px}
+  .dots{display:flex;gap:6px;flex:1;justify-content:center}
+  .dot{width:12px;height:12px;border-radius:50%;background:rgba(255,255,255,.25);transition:.3s}
+  .dot.on{background:var(--sun);transform:scale(1.25)}
+  .dot.done{background:var(--zip)}
+  .starcount{background:rgba(255,255,255,.12);padding:6px 14px;border-radius:999px;font-weight:800;font-size:18px}
+  .toggle{background:rgba(255,255,255,.12);color:#fff;border:0;padding:7px 12px;border-radius:999px;font:700 13px "Nunito",sans-serif;cursor:pointer}
+  select.toggle option{color:#1f2340}
+  .toggle.on{background:var(--sun);color:var(--ink)}
+  /* screen */
+  .screen{display:none;animation:pop .45s ease}
+  .screen.active{display:block}
+  @keyframes pop{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
+  .card{background:var(--card);border-radius:var(--radius);padding:22px;box-shadow:0 18px 50px rgba(0,0,0,.25)}
+  .level-tag{display:inline-block;background:var(--violet);color:#fff;font:800 14px "Baloo 2","Nunito",sans-serif;padding:4px 14px;border-radius:999px;margin-bottom:8px;letter-spacing:.5px}
+  .title{font-size:34px;line-height:1.1;margin-bottom:6px}
+  .ru{color:var(--muted);font-size:14px;font-weight:700;margin-top:4px}
+  body.no-ru .ru{display:none}
+  .row{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+  .grow{flex:1;min-width:260px}
+  /* Zip speech */
+  .zipbox{display:flex;gap:14px;align-items:flex-end;margin:10px 0 16px}
+  .zipbox .zip{width:118px;flex:0 0 auto}
+  .bubble{position:relative;background:#f1f6ff;border:3px solid #dbe6ff;border-radius:20px;padding:14px 16px;font-size:20px;font-weight:800;flex:1}
+  .bubble:before{content:"";position:absolute;left:-14px;bottom:18px;border:10px solid transparent;border-right-color:#dbe6ff}
+  .say{border:0;background:var(--sky);color:#fff;border-radius:50%;width:38px;height:38px;font-size:18px;cursor:pointer;vertical-align:middle;margin-left:6px;box-shadow:0 3px 0 #2c9bd6}
+  .say:active{transform:translateY(2px);box-shadow:none}
+  /* buttons */
+  .btn{border:0;cursor:pointer;font:800 20px "Baloo 2","Nunito",sans-serif;padding:12px 26px;border-radius:16px;background:var(--sun);color:var(--ink);box-shadow:0 5px 0 #d9a21a;transition:transform .08s}
+  .btn:active{transform:translateY(3px);box-shadow:0 2px 0 #d9a21a}
+  .btn.green{background:var(--zip);box-shadow:0 5px 0 var(--zipdark);color:#fff}
+  .btn.pink{background:var(--pink);box-shadow:0 5px 0 #d94784;color:#fff}
+  .btn.ghost{background:#eef1ff;box-shadow:0 5px 0 #c9cff0}
+  .btn.small{font-size:16px;padding:8px 16px}
+  .nav{display:flex;justify-content:space-between;align-items:center;margin-top:16px}
+  .nav .btn{min-width:120px}
+  /* chips */
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 14px}
+  .chip{border:3px solid #e3e7fb;background:#fff;border-radius:14px;padding:8px 14px;font:800 18px "Nunito",sans-serif;cursor:pointer;transition:.15s;display:flex;align-items:center;gap:6px}
+  .chip:hover{border-color:var(--violet)}
+  .chip.sel{background:var(--violet);border-color:var(--violet);color:#fff;transform:scale(1.05)}
+  .chip .emo{font-size:24px}
+  .swatch{width:44px;height:44px;border-radius:12px;border:4px solid #fff;box-shadow:0 0 0 3px #e3e7fb;cursor:pointer;transition:.15s}
+  .swatch.sel{box-shadow:0 0 0 4px var(--violet);transform:scale(1.12)}
+  .q{font:800 22px "Baloo 2","Nunito",sans-serif;margin-top:10px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .q .num{background:var(--sun);border-radius:10px;padding:0 10px;font-size:18px}
+  input.name{font:800 24px "Baloo 2","Nunito",sans-serif;padding:10px 16px;border:3px solid #e3e7fb;border-radius:14px;width:100%;max-width:340px;outline:none}
+  input.name:focus{border-color:var(--violet)}
+  /* passport */
+  .passport{background:linear-gradient(135deg,#ffe7a3,#ffd0e2);border-radius:20px;padding:18px;border:4px dashed #fff;box-shadow:inset 0 0 0 3px #f6b8cf;font-size:20px;font-weight:800;line-height:1.7}
+  .passport h3{font-size:24px;margin-bottom:4px}
+  .passport .photo{float:right;width:96px;height:96px;background:#fff;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:56px;margin-left:12px}
+  .passport .blank{display:inline-block;min-width:70px;border-bottom:3px solid #c9719a;color:#7a2b55;text-align:center;padding:0 4px}
+  /* map */
+  .map{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:14px 0}
+  .planet{border-radius:20px;padding:14px 10px;text-align:center;color:#fff;font:800 18px "Baloo 2","Nunito",sans-serif;position:relative}
+  .planet .p-emo{font-size:40px;display:block}
+  .planet .lock{position:absolute;top:8px;right:10px;font-size:18px}
+  /* room */
+  .room-wrap{background:#f6f3ff;border-radius:20px;padding:8px}
+  svg.room{width:100%;height:auto;display:block}
+  .obj{cursor:pointer;transition:transform .15s}
+  .obj:hover{filter:drop-shadow(0 0 6px #ffd400)}
+  .obj.flash{animation:flash .8s ease 2}
+  @keyframes flash{50%{filter:drop-shadow(0 0 14px #ff3d8b) brightness(1.2)}}
+  .qcard{background:#fff7d6;border-radius:18px;padding:16px;border:3px solid #ffe08a}
+  .answer{margin-top:10px;font:800 22px "Baloo 2","Nunito",sans-serif;color:var(--ok);min-height:32px}
+  .counter{color:var(--muted);font-weight:800;font-size:14px}
+  /* zip says */
+  .cmd{font:800 46px "Baloo 2","Nunito",sans-serif;text-align:center;padding:26px 10px;border-radius:24px;background:linear-gradient(135deg,#dff7ea,#d6ecff);min-height:170px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+  .cmd .emo{font-size:64px}
+  .cmd .zs{color:var(--zipdark);font-size:30px}
+  .cmd .nozs{color:var(--bad);font-size:30px}
+  /* interview */
+  .flips{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:10px}
+  .flip{perspective:900px;height:170px;cursor:pointer}
+  .flip-in{position:relative;width:100%;height:100%;transition:transform .6s;transform-style:preserve-3d}
+  .flip.open .flip-in{transform:rotateY(180deg)}
+  .face{position:absolute;inset:0;backface-visibility:hidden;border-radius:18px;padding:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font:800 18px "Baloo 2","Nunito",sans-serif}
+  .front{background:linear-gradient(135deg,#8b7bff,#5ec8ff);color:#fff}
+  .front .emo{font-size:46px}
+  .front .kw{font-size:20px}
+  .back{background:#e9fff2;border:3px solid var(--zip);transform:rotateY(180deg);color:var(--ink);font-size:16px;gap:6px}
+  .back .q2{color:var(--violet);font-size:17px}
+  .hintbtn{margin-top:6px;border:0;background:rgba(255,255,255,.25);color:#fff;border-radius:10px;font:700 13px "Nunito",sans-serif;padding:3px 10px;cursor:pointer}
+  .hinttxt{font-size:15px;margin-top:4px;background:rgba(0,0,0,.18);border-radius:8px;padding:2px 8px;display:none}
+  .flip.hint .hinttxt{display:block}
+  /* letter */
+  .envelope{width:240px;height:160px;margin:10px auto;position:relative;cursor:pointer}
+  .letter{background:#fffdf3;border:3px solid #f0e2b4;border-radius:16px;padding:18px 20px;font-size:21px;line-height:1.6;font-weight:700;display:none}
+  .letter.show{display:block;animation:pop .5s}
+  .letter .ls{display:none;padding:2px 6px;border-radius:8px}
+  .letter .ls.on{display:block}
+  .letter .ls.cur{background:#fff1b8}
+  .letter .lnav{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap}
+  .tf{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:#f5f6ff;margin-top:8px;font-size:19px;font-weight:800;flex-wrap:wrap}
+  .tf .s{flex:1;min-width:200px}
+  .tf button{border:0;border-radius:12px;font:800 16px "Baloo 2","Nunito",sans-serif;padding:6px 16px;cursor:pointer;background:#fff;box-shadow:0 3px 0 #d7dbf3}
+  .tf.right{background:#dcfbe9}
+  .tf.wrong{background:#ffe3e3}
+  .tf .res{font-size:22px;width:28px}
+  /* final */
+  .badge{width:230px;height:230px;margin:0 auto;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff3b8,#ffc93c 55%,#f0a500);display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 0 0 10px #fff,0 0 0 18px #ffc93c,0 20px 50px rgba(0,0,0,.35);text-align:center;font-family:"Baloo 2","Nunito",sans-serif;animation:spin-in 1s ease}
+  @keyframes spin-in{from{transform:scale(.2) rotate(-200deg);opacity:0}to{transform:none;opacity:1}}
+  .badge .b1{font-size:16px;font-weight:800;color:#8a5a00;letter-spacing:1px}
+  .badge .b2{font-size:30px;font-weight:800;color:#5a3a00;line-height:1}
+  .badge .b3{font-size:44px}
+  .cans{display:flex;flex-direction:column;gap:8px;max-width:520px;margin:14px auto}
+  .can{border:3px solid #e3e7fb;background:#fff;border-radius:14px;padding:10px 14px;font:800 20px "Baloo 2","Nunito",sans-serif;cursor:pointer;text-align:left}
+  .can.sel{background:#dcfbe9;border-color:var(--ok)}
+  .confetti{position:fixed;top:-20px;width:10px;height:16px;z-index:50;pointer-events:none;animation:fall linear forwards}
+  @keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+  .starfly{position:fixed;z-index:60;font-size:34px;pointer-events:none;animation:starfly 1s ease forwards}
+  @keyframes starfly{0%{transform:scale(.4);opacity:0}30%{transform:scale(1.4);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(.5);opacity:0}}
+  .start-hero{text-align:center;color:#fff;padding:20px 0}
+  .start-hero .zip{width:200px;animation:float 3s ease-in-out infinite}
+  @keyframes float{50%{transform:translateY(-12px)}}
+  .start-hero h1{font-size:54px;line-height:1;margin:10px 0}
+  .start-hero p{font-size:20px;font-weight:700;opacity:.9}
+  .zip-wave .arm-r{transform-origin:150px 120px;animation:wave 1s ease-in-out infinite}
+  @keyframes wave{50%{transform:rotate(-25deg)}}
+  .blink .eye{animation:blink 4s infinite}
+  @keyframes blink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
+  .eye{transform-box:fill-box;transform-origin:center}
+  @media (max-width:760px){
+    .map{grid-template-columns:repeat(2,1fr)}
+    .flips{grid-template-columns:repeat(2,1fr)}
+    .title{font-size:28px}
+    .start-hero h1{font-size:40px}
+    .cmd{font-size:36px}
+  }
+</style>
+</head>
+<body>
+<svg id="stars-bg"></svg>
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand"><span id="brandZip" style="width:34px;display:inline-block"></span> Mission: Help Zip!</div>
+    <div class="dots" id="dots"></div>
+    <select class="toggle" id="voiceSel" title="Choose voice" style="max-width:190px"></select>
+    <button class="toggle on" id="ruToggle" title="Show / hide Russian hints">RU подсказки</button>
+    <div class="starcount">⭐ <span id="stars">0</span></div>
+  </div>
+
+  <!-- 0 START -->
+  <section class="screen active" data-step="0">
+    <div class="start-hero">
+      <div class="zip zip-wave blink" id="heroZip"></div>
+      <h1>Mission: Help Zip!</h1>
+      <p>A secret mission for a new agent 🚀</p>
+      <p class="ru" style="color:#cfd3ff">Секретная миссия для нового агента</p>
+      <div style="margin-top:22px"><button class="btn green" onclick="go(1)">Start ▶</button></div>
+    </div>
+  </section>
+
+  <!-- 1 HELLO -->
+  <section class="screen" data-step="1">
+    <div class="card">
+      <span class="level-tag">HELLO!</span>
+      <h2 class="title">Meet Zip</h2>
+      <div class="zipbox">
+        <div class="zip zip-wave blink"></div>
+        <div class="bubble">Hello! I'm Zip. I'm from planet Blip. What's your name?
+          <button class="say" data-say="Hello! I'm Zip. I'm from planet Blip. What's your name?">🔊</button>
+        </div>
+      </div>
+      <div class="q"><span class="num">1</span> My name is…</div>
+      <div class="ru">Напиши своё имя по-английски</div>
+      <div style="margin:8px 0 14px"><input class="name" id="agentName" placeholder="Your name" maxlength="18" autocomplete="off"></div>
+      <div class="zipbox" style="margin-top:4px">
+        <div class="bubble" style="font-size:19px">Nice to meet you, <span class="nm">Agent</span>! How are you today?
+          <button class="say" data-say-fn="howAreYou">🔊</button>
+        </div>
+      </div>
+      <div class="chips" id="moodChips">
+        <button class="chip" data-v="great"><span class="emo">😄</span> I'm great!</button>
+        <button class="chip" data-v="fine"><span class="emo">🙂</span> I'm fine.</button>
+        <button class="chip" data-v="ok"><span class="emo">😐</span> I'm OK.</button>
+        <button class="chip" data-v="tired"><span class="emo">😴</span> I'm tired.</button>
+      </div>
+      <div class="nav"><button class="btn ghost" onclick="go(0)">◀ Back</button><button class="btn" onclick="go(2)">Next ▶</button></div>
+    </div>
+  </section>
+
+  <!-- 2 MISSION -->
+  <section class="screen" data-step="2">
+    <div class="card">
+      <span class="level-tag">YOUR MISSION</span>
+      <h2 class="title">Zip needs help!</h2>
+      <div class="zipbox">
+        <div class="zip blink"></div>
+        <div class="bubble">I want to understand Earth kids. Help me, Agent <span class="nm">Agent</span>! Finish 4 levels and get your Agent badge!
+          <button class="say" data-say-fn="missionTxt">🔊</button>
+          <div class="ru">Помоги Зипу понять землян: пройди 4 уровня и получи значок агента!</div>
+        </div>
+      </div>
+      <div class="map" id="map"></div>
+      <div class="nav"><button class="btn ghost" onclick="go(1)">◀ Back</button><button class="btn green" onclick="go(3)">Level 1 ▶</button></div>
+    </div>
+  </section>
+
+  <!-- 3 PASSPORT -->
+  <section class="screen" data-step="3">
+    <div class="card">
+      <span class="level-tag">LEVEL 1</span>
+      <h2 class="title">Agent Passport</h2>
+      <div class="ru">Зип задаёт вопросы — ответь вслух и выбери ответ</div>
+      <div class="row" style="margin-top:6px">
+        <div class="grow">
+          <div class="q"><span class="num">1</span> How old are you? <button class="say" data-say="How old are you?">🔊</button></div>
+          <div class="chips" data-key="age">
+            <button class="chip" data-v="seven">7</button><button class="chip" data-v="eight">8</button><button class="chip" data-v="nine">9</button><button class="chip" data-v="ten">10</button><button class="chip" data-v="eleven">11</button><button class="chip" data-v="twelve">12</button>
+          </div>
+          <div class="q"><span class="num">2</span> What's your favourite colour? <button class="say" data-say="What's your favourite colour?">🔊</button></div>
+          <div class="chips" data-key="colour" id="colourChips"></div>
+          <div class="q"><span class="num">3</span> What's your favourite animal? <button class="say" data-say="What's your favourite animal?">🔊</button></div>
+          <div class="chips" data-key="animal">
+            <button class="chip" data-v="cats" data-e="🐱"><span class="emo">🐱</span></button>
+            <button class="chip" data-v="dogs" data-e="🐶"><span class="emo">🐶</span></button>
+            <button class="chip" data-v="horses" data-e="🐴"><span class="emo">🐴</span></button>
+            <button class="chip" data-v="rabbits" data-e="🐰"><span class="emo">🐰</span></button>
+            <button class="chip" data-v="pandas" data-e="🐼"><span class="emo">🐼</span></button>
+            <button class="chip" data-v="dolphins" data-e="🐬"><span class="emo">🐬</span></button>
+            <button class="chip" data-v="tigers" data-e="🐯"><span class="emo">🐯</span></button>
+            <button class="chip" data-v="parrots" data-e="🦜"><span class="emo">🦜</span></button>
+          </div>
+          <div class="q"><span class="num">4</span> What can you do? <button class="say" data-say="What can you do?">🔊</button></div>
+          <div class="chips" data-key="can">
+            <button class="chip" data-v="swim"><span class="emo">🏊</span></button>
+            <button class="chip" data-v="ride a bike"><span class="emo">🚴</span></button>
+            <button class="chip" data-v="dance"><span class="emo">💃</span></button>
+            <button class="chip" data-v="draw"><span class="emo">🎨</span></button>
+            <button class="chip" data-v="play football"><span class="emo">⚽</span></button>
+            <button class="chip" data-v="sing"><span class="emo">🎤</span></button>
+            <button class="chip" data-v="skate"><span class="emo">⛸️</span></button>
+            <button class="chip" data-v="cook"><span class="emo">🍳</span></button>
+          </div>
+          <div class="q"><span class="num">5</span> Have you got a pet? <button class="say" data-say="Have you got a pet?">🔊</button></div>
+          <div class="chips" data-key="pet">
+            <button class="chip" data-v="yes">Yes, I have.</button>
+            <button class="chip" data-v="no">No, I haven't.</button>
+          </div>
+        </div>
+        <div class="grow">
+          <div class="passport" id="passport"></div>
+          <div class="ru" style="margin-top:8px">Прочитай свой паспорт вслух Зипу</div>
+          <div style="margin-top:8px"><button class="btn small pink" onclick="readPassport()">🔊 Zip reads it</button></div>
+        </div>
+      </div>
+      <div class="nav"><button class="btn ghost" onclick="go(2)">◀ Back</button><button class="btn green" onclick="finishLevel(1,4)">Done! ⭐</button></div>
+    </div>
+  </section>
+
+  <!-- 4 ROOM -->
+  <section class="screen" data-step="4">
+    <div class="card">
+      <span class="level-tag">LEVEL 2</span>
+      <h2 class="title">Zip's Room</h2>
+      <div class="ru">Слушай вопрос, ищи на картинке и отвечай. Нажимай на предметы, чтобы услышать слово</div>
+      <div class="row" style="margin-top:8px">
+        <div class="grow" style="flex:1.5">
+          <div class="room-wrap"><svg class="room" id="room" viewBox="0 0 800 480"></svg></div>
+        </div>
+        <div class="grow">
+          <div class="qcard">
+            <div class="counter">Question <span id="rqn">1</span> / <span id="rqt">6</span></div>
+            <div class="q" style="margin-top:4px"><span id="rq"></span> <button class="say" id="rqSay">🔊</button></div>
+            <div class="answer" id="ra"></div>
+            <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+              <button class="btn small green" onclick="roomCheck()">Check ✔</button>
+              <button class="btn small" onclick="roomNext()">Next ▶</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="nav"><button class="btn ghost" onclick="go(3)">◀ Back</button><button class="btn green" onclick="finishLevel(2,5)">Done! ⭐</button></div>
+    </div>
+  </section>
+
+  <!-- 5 ZIP SAYS -->
+  <section class="screen" data-step="5">
+    <div class="card">
+      <span class="level-tag">BREAK TIME</span>
+      <h2 class="title">Zip says…</h2>
+      <div class="ru">Встань! Делай движение, только если слышишь «Zip says». Нет «Zip says» — стой на месте!</div>
+      <div class="cmd" id="cmd"><span class="emo">🛸</span><span>Stand up!</span></div>
+      <div style="text-align:center;margin-top:14px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+        <button class="btn pink" onclick="nextCmd()">Next command ▶</button>
+        <button class="btn ghost small" onclick="repeatCmd()">🔊 Again</button>
+      </div>
+      <div class="nav"><button class="btn ghost" onclick="go(4)">◀ Back</button><button class="btn" onclick="go(6)">Level 3 ▶</button></div>
+    </div>
+  </section>
+
+  <!-- 6 INTERVIEW -->
+  <section class="screen" data-step="6">
+    <div class="card">
+      <span class="level-tag">LEVEL 3</span>
+      <h2 class="title">Interview Zip</h2>
+      <div class="zipbox" style="margin:6px 0">
+        <div class="zip blink" style="width:90px"></div>
+        <div class="bubble" style="font-size:18px">Now YOU ask ME! Choose a card, ask a question, then open the card.
+          <button class="say" data-say="Now you ask me! Choose a card, ask a question, then open the card.">🔊</button>
+          <div class="ru">Выбери карточку, задай Зипу вопрос вслух, потом открой её. Застрял — нажми «Hint»</div>
+        </div>
+      </div>
+      <div class="flips" id="flips"></div>
+      <div class="nav"><button class="btn ghost" onclick="go(5)">◀ Back</button><button class="btn green" onclick="finishLevel(3,7)">Done! ⭐</button></div>
+    </div>
+  </section>
+
+  <!-- 7 LETTER -->
+  <section class="screen" data-step="7">
+    <div class="card">
+      <span class="level-tag">LEVEL 4</span>
+      <h2 class="title">The Secret Letter</h2>
+      <div class="ru">Открой письмо и читай по одному предложению. Потом реши: правда (True) или нет (False)?</div>
+      <div class="envelope" id="env" onclick="openLetter()">
+        <svg viewBox="0 0 240 160" width="240" height="160">
+          <rect x="6" y="20" width="228" height="134" rx="14" fill="#ffe08a" stroke="#e8b931" stroke-width="4"/>
+          <path d="M8 28 L120 100 L232 28" fill="none" stroke="#e8b931" stroke-width="4"/>
+          <circle cx="120" cy="96" r="20" fill="#ff6fa5"/><text x="120" y="104" text-anchor="middle" font-size="22">👽</text>
+          <text x="120" y="14" text-anchor="middle" font-family="Baloo 2" font-weight="800" font-size="15" fill="#fff">TOP SECRET • tap to open</text>
+        </svg>
+      </div>
+      <div class="letter" id="letter">
+        <div style="float:right"><button class="say" data-say-fn="letterTxt">🔊</button></div>
+        <span class="ls">Hi, Agent <span class="nm">Agent</span>!</span>
+        <span class="ls">My name is Zip.</span>
+        <span class="ls">I live on planet Blip.</span>
+        <span class="ls">I've got three eyes and two green arms.</span>
+        <span class="ls">I like ice cream, but I don't like rain.</span>
+        <span class="ls">I can fly, but I can't swim.</span>
+        <span class="ls">Yesterday I visited the Moon. It was very cold!</span>
+        <span class="ls">Now I am sitting in my spaceship and I am writing this letter to you.</span>
+        <span class="ls">Bye! Zip 👽</span>
+        <div class="lnav"><button class="btn small" id="lnext" onclick="letterNext()">Next ▶</button><button class="btn small ghost" id="lall" onclick="letterAll()">Show all</button></div>
+      </div>
+      <div id="tfs" style="display:none;margin-top:12px"></div>
+      <div class="nav"><button class="btn ghost" onclick="go(6)">◀ Back</button><div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn pink" onclick="finishLevel(4,9)">Bonus level 🚀</button><button class="btn green" onclick="finishLevel(4,8)">Done! ⭐</button></div></div>
+    </div>
+  </section>
+
+
+  <!-- 9 BONUS -->
+  <section class="screen" data-step="9">
+    <div class="card">
+      <span class="level-tag" style="background:#ff6fa5">BONUS LEVEL</span>
+      <h2 class="title">Zip's Yesterday</h2>
+      <div class="zipbox" style="margin:6px 0">
+        <div class="zip blink" style="width:90px"></div>
+        <div class="bubble" style="font-size:18px">Yesterday was a great day! Look at my photos!
+          <button class="say" data-say="Yesterday was a great day! Look at my photos!">🔊</button>
+          <div class="ru">Вчера у Зипа был интересный день. Открой фото и расскажи, что он делал</div>
+        </div>
+      </div>
+      <div class="flips" id="yflips"></div>
+      <div class="qcard" style="margin-top:16px">
+        <div class="q" style="margin-top:0">And YOU? What did you do yesterday? <button class="say" data-say="And you? What did you do yesterday?">🔊</button></div>
+        <div class="ru">А ты? Что ты делал вчера? Выбери подсказку и расскажи: Yesterday I…</div>
+        <div class="chips" id="ychips"></div>
+        <div class="answer" id="yans" style="color:var(--ink)"></div>
+      </div>
+      <div class="nav"><button class="btn ghost" onclick="go(7)">◀ Back</button><button class="btn green" onclick="finishLevel(5,8)">Done! ⭐</button></div>
+    </div>
+  </section>
+
+  <!-- 8 FINAL -->
+  <section class="screen" data-step="8">
+    <div class="card" style="text-align:center">
+      <span class="level-tag">MISSION COMPLETE</span>
+      <h2 class="title">Well done, Agent <span class="nm">Agent</span>!</h2>
+      <div style="margin:18px 0 10px">
+        <div class="badge"><div class="b1">AGENT</div><div class="b2 nm">Agent</div><div class="b3">👽⭐</div><div class="b1">LEVEL 1</div></div>
+      </div>
+      <div class="big" style="font-size:22px;margin-top:22px">⭐ <span id="finalStars">0</span> stars</div>
+      <div class="q" style="justify-content:center;margin-top:14px">Now I can… <button class="say" data-say="Now I can...">🔊</button></div>
+      <div class="ru">Выбери, что ты теперь умеешь, и скажи вслух: «Now I can…»</div>
+      <div class="cans">
+        <button class="can">🙋 …talk about me.</button>
+        <button class="can">❓ …ask questions.</button>
+        <button class="can">🔎 …say where things are.</button>
+        <button class="can">✉️ …read a letter in English.</button>
+      </div>
+      <div class="zipbox" style="max-width:600px;margin:10px auto">
+        <div class="zip zip-wave blink"></div>
+        <div class="bubble">Thank you, Agent! Now I understand Earth kids. See you next time! Bye-bye!
+          <button class="say" data-say="Thank you, Agent! Now I understand Earth kids. See you next time! Bye-bye!">🔊</button>
+        </div>
+      </div>
+      <div class="nav"><button class="btn ghost" onclick="go(7)">◀ Back</button><button class="btn pink" onclick="confetti()">🎉 Party!</button></div>
+    </div>
+  </section>
+</div>
+
+<script>
+/* ---------- Zip character (original) ---------- */
+function zipSVG(){
+  return `<svg viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;overflow:visible">
+    <line x1="80" y1="40" x2="66" y2="8" stroke="#2fa866" stroke-width="6" stroke-linecap="round"/>
+    <line x1="120" y1="40" x2="134" y2="8" stroke="#2fa866" stroke-width="6" stroke-linecap="round"/>
+    <circle cx="66" cy="8" r="9" fill="#ffc93c"/><circle cx="134" cy="8" r="9" fill="#ff6fa5"/>
+    <g class="arm-l"><path d="M48 120 Q20 130 18 160" stroke="#5fd38d" stroke-width="14" fill="none" stroke-linecap="round"/></g>
+    <g class="arm-r"><path d="M152 120 Q182 100 186 74" stroke="#5fd38d" stroke-width="14" fill="none" stroke-linecap="round"/></g>
+    <ellipse cx="100" cy="125" rx="58" ry="70" fill="#5fd38d"/>
+    <ellipse cx="100" cy="150" rx="34" ry="36" fill="#8ce6ae"/>
+    <rect x="66" y="188" width="18" height="26" rx="9" fill="#2fa866"/><rect x="116" y="188" width="18" height="26" rx="9" fill="#2fa866"/>
+    <g class="eye"><ellipse cx="70" cy="92" rx="15" ry="17" fill="#fff"/><circle cx="73" cy="95" r="7" fill="#1f2340"/><circle cx="76" cy="91" r="2.5" fill="#fff"/></g>
+    <g class="eye"><ellipse cx="100" cy="78" rx="17" ry="19" fill="#fff"/><circle cx="103" cy="82" r="8" fill="#1f2340"/><circle cx="106" cy="77" r="2.8" fill="#fff"/></g>
+    <g class="eye"><ellipse cx="130" cy="92" rx="15" ry="17" fill="#fff"/><circle cx="133" cy="95" r="7" fill="#1f2340"/><circle cx="136" cy="91" r="2.5" fill="#fff"/></g>
+    <path d="M78 122 Q100 142 122 122" stroke="#1f2340" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <circle cx="62" cy="120" r="7" fill="#ff9fc2" opacity=".7"/><circle cx="138" cy="120" r="7" fill="#ff9fc2" opacity=".7"/>
+  </svg>`;
+}
+document.querySelectorAll('.zip').forEach(z=>z.innerHTML=zipSVG());
+document.getElementById('brandZip').innerHTML=zipSVG();
+
+/* ---------- background stars ---------- */
+(function(){
+  const s=document.getElementById('stars-bg');s.setAttribute('width','100%');s.setAttribute('height','100%');
+  let h='';for(let i=0;i<90;i++){const x=Math.random()*100,y=Math.random()*100,r=Math.random()*1.6+.4,o=Math.random()*.7+.2;
+  h+=`<circle cx="${x}%" cy="${y}%" r="${r}" fill="#fff" opacity="${o}"/>`;}s.innerHTML=h;
+})();
+
+/* ---------- state ---------- */
+const S={step:0,stars:0,name:'',levels:{},pass:{age:null,colour:null,animal:null,can:null,pet:null},mood:null};
+const STEPS=9;
+
+/* ---------- speech ---------- */
+let voice=null,T=null,voiceChoice='auto';
+try{voiceChoice=localStorage.getItem('zipVoice')||'auto';}catch(e){}
+function scoreVoice(v){
+  if(!/^en/i.test(v.lang))return -1;
+  let s=0;const n=v.name;
+  if(/natural|neural|online/i.test(n))s+=50;
+  if(/premium|enhanced/i.test(n))s+=40;
+  if(/google/i.test(n))s+=30;
+  if(/samantha|ava|allison|aria|jenny|serena|karen|daniel|moira|tessa|zira/i.test(n))s+=15;
+  if(/en[-_]US/i.test(v.lang))s+=6;else if(/en[-_]GB/i.test(v.lang))s+=5;
+  if(/compact|novelty|whisper|bad news|bells|boing|bubbles|cellos|zarvox|trinoids|albert|jester|organ|superstar|wobble|grandma|grandpa|rocko|shelley|flo|eddy|reed|sandy/i.test(n))s-=60;
+  return s;
+}
+function englishVoices(){try{return speechSynthesis.getVoices().filter(v=>scoreVoice(v)>=0).sort((a,b)=>scoreVoice(b)-scoreVoice(a));}catch(e){return[]}}
+function pickVoice(){
+  const list=englishVoices();
+  voice=(voiceChoice!=='auto'&&voiceChoice!=='claude'&&list.find(v=>v.name===voiceChoice))||list[0]||null;
+  renderVoiceSelect();
+}
+function renderVoiceSelect(){
+  const sel=document.getElementById('voiceSel');if(!sel)return;
+  const list=englishVoices();
+  let h='<option value="auto">🔊 Voice: best</option>';
+  if(T)h+='<option value="claude">🔊 Claude voice</option>';
+  h+=list.slice(0,25).map(v=>`<option value="${v.name.replace(/"/g,'&quot;')}">${v.name} (${v.lang})</option>`).join('');
+  sel.innerHTML=h;sel.value=[...sel.options].some(o=>o.value===voiceChoice)?voiceChoice:'auto';
+}
+try{pickVoice();speechSynthesis.onvoiceschanged=pickVoice;}catch(e){}
+function browserSpeak(t){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang=voice?voice.lang:'en-US';u.rate=.9;u.pitch=1;if(voice)u.voice=voice;speechSynthesis.speak(u);}catch(e){}}
+function speak(t){
+  const useClaude=T&&(voiceChoice==='claude'||(voiceChoice==='auto'&&!(voice&&scoreVoice(voice)>=40)));
+  if(useClaude){try{speechSynthesis.cancel();}catch(e){}T.speak(t,{voice:'airy',rate:.9,language:'en'}).catch(err=>{if(err&&err.code!=='viewer_stopped')browserSpeak(t);});}
+  else browserSpeak(t);
+}
+(async()=>{try{if(window.claude&&claude.use){const t=await claude.use('tts');if(t){T=t;renderVoiceSelect();}}}catch(e){}})();
+const sayFns={
+  howAreYou:()=>`Nice to meet you, ${nameOr('Agent')}! How are you today?`,
+  missionTxt:()=>`I want to understand Earth kids. Help me, Agent ${nameOr('')}! Finish four levels and get your Agent badge!`,
+  letterTxt:()=>[...document.querySelectorAll('#letter .ls.on')].map(s=>s.innerText).join(' ')
+};
+document.addEventListener('click',e=>{
+  const b=e.target.closest('.say');if(!b)return;
+  if(b.dataset.say)speak(b.dataset.say);else if(b.dataset.sayFn)speak(sayFns[b.dataset.sayFn]());
+});
+function nameOr(d){return S.name||d}
+
+/* ---------- navigation ---------- */
+const dots=document.getElementById('dots');
+for(let i=0;i<STEPS;i++){const d=document.createElement('div');d.className='dot';dots.appendChild(d);}
+function go(n){
+  S.step=n;
+  document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',+s.dataset.step===n));
+  [...dots.children].forEach((d,i)=>{d.className='dot'+(i<n?' done':'')+(i===n?' on':'');});
+  if(n===2)renderMap();
+  if(n===8){document.getElementById('finalStars').textContent=S.stars;setTimeout(confetti,400);speak('Mission complete! Well done, Agent '+nameOr('')+'!');}
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+go(0);
+
+/* ---------- voice select ---------- */
+document.getElementById('voiceSel').addEventListener('change',e=>{voiceChoice=e.target.value;try{localStorage.setItem('zipVoice',voiceChoice);}catch(_){}pickVoice();speak('Hello! I am Zip.');});
+renderVoiceSelect();
+/* ---------- RU toggle ---------- */
+const ruT=document.getElementById('ruToggle');
+ruT.onclick=()=>{document.body.classList.toggle('no-ru');ruT.classList.toggle('on');};
+
+/* ---------- stars ---------- */
+function addStar(n=1,el){
+  S.stars+=n;document.getElementById('stars').textContent=S.stars;
+  const t=document.querySelector('.starcount').getBoundingClientRect();
+  const r=el?el.getBoundingClientRect():{left:innerWidth/2,top:innerHeight/2,width:0,height:0};
+  for(let i=0;i<Math.min(n,5);i++){const s=document.createElement('div');s.className='starfly';s.textContent='⭐';
+    const x=r.left+r.width/2-17+i*14,y=r.top+r.height/2-17;s.style.left=x+'px';s.style.top=y+'px';
+    s.style.setProperty('--dx',(t.left-x)+'px');s.style.setProperty('--dy',(t.top-y)+'px');s.style.animationDelay=(i*.12)+'s';
+    document.body.appendChild(s);setTimeout(()=>s.remove(),1500);}
+}
+function finishLevel(l,next){
+  if(!S.levels[l]){S.levels[l]=true;addStar(3,event&&event.target);speak(['','Great job!','Super!','Excellent!','Amazing, Agent!','Wow! Super agent!'][l]);}
+  setTimeout(()=>go(next),900);
+}
+
+/* ---------- HELLO ---------- */
+const nameIn=document.getElementById('agentName');
+nameIn.addEventListener('input',()=>{S.name=nameIn.value.trim();updateNames();renderPassport();});
+function updateNames(){document.querySelectorAll('.nm').forEach(n=>n.textContent=S.name||'Agent');}
+document.getElementById('moodChips').addEventListener('click',e=>{
+  const c=e.target.closest('.chip');if(!c)return;
+  [...c.parentNode.children].forEach(x=>x.classList.remove('sel'));c.classList.add('sel');S.mood=c.dataset.v;
+  speak({great:"Great! Me too!",fine:"Good! I'm fine too.",ok:"OK! Let's have fun!",tired:"Oh no! Let's wake up with a game!"}[S.mood]);
+});
+
+/* ---------- MAP ---------- */
+const LEVELS=[
+  {n:1,t:'Passport',e:'🪪',c:'#8b7bff'},{n:2,t:"Zip's Room",e:'🏠',c:'#5ec8ff'},
+  {n:3,t:'Interview',e:'🎤',c:'#ff6fa5'},{n:4,t:'Secret Letter',e:'✉️',c:'#ffb020'}];
+function renderMap(){
+  document.getElementById('map').innerHTML=LEVELS.map(l=>`<div class="planet" style="background:${l.c}">
+    <span class="lock">${S.levels[l.n]?'⭐':'🔒'}</span><span class="p-emo">${l.e}</span>Level ${l.n}<br><span style="font-size:15px">${l.t}</span></div>`).join('');
+}
+
+/* ---------- PASSPORT ---------- */
+const COLOURS=[['red','#ff4d4d'],['blue','#3d7bff'],['green','#2fbf62'],['yellow','#ffd93d'],['pink','#ff7ab6'],['purple','#9a5cff'],['orange','#ff9a2e'],['black','#2b2b2b']];
+document.getElementById('colourChips').innerHTML=COLOURS.map(([n,c])=>`<button class="swatch" data-v="${n}" style="background:${c}" title="${n}" aria-label="${n}"></button>`).join('');
+document.querySelectorAll('#colourChips .swatch').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#colourChips .swatch').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');S.pass.colour=b.dataset.v;renderPassport();speak(b.dataset.v);
+});
+document.querySelectorAll('.chips[data-key]').forEach(group=>{
+  const key=group.dataset.key;if(key==='colour')return;
+  group.addEventListener('click',e=>{const c=e.target.closest('.chip');if(!c)return;
+    [...group.children].forEach(x=>x.classList.remove('sel'));c.classList.add('sel');
+    S.pass[key]=c.dataset.v;if(key==='animal')S.pass.animalE=c.dataset.e;
+    if(key==='animal'||key==='can')speak(c.dataset.v);
+    renderPassport();});
+});
+function bl(v){return `<span class="blank">${v||'&nbsp;?&nbsp;'}</span>`}
+function renderPassport(){
+  const p=S.pass;
+  document.getElementById('passport').innerHTML=`
+    <div class="photo">${p.animalE||'🙂'}</div>
+    <h3>🪪 AGENT PASSPORT</h3>
+    My name is ${bl(S.name)}.<br>
+    I'm ${bl(p.age)} years old.<br>
+    My favourite colour is ${bl(p.colour)}.<br>
+    I like ${bl(p.animal)}.<br>
+    I can ${bl(p.can)}.<br>
+    ${p.pet==='yes'?"I've got a pet.":p.pet==='no'?"I haven't got a pet.":"I "+bl('')+" a pet."}`;
+}
+renderPassport();
+function readPassport(){speak(document.getElementById('passport').innerText.replace('🪪 AGENT PASSPORT','').replace(/\?/g,'something'));}
+
+/* ---------- ROOM ---------- */
+function drawRoom(){
+  const r=document.getElementById('room');
+  r.innerHTML=`
+  <rect x="0" y="0" width="800" height="330" fill="#e8e1ff"/>
+  <rect x="0" y="330" width="800" height="150" fill="#c9a77c"/>
+  <g stroke="#b8946a" stroke-width="2" opacity=".5">${[360,390,420,450].map(y=>`<line x1="0" y1="${y}" x2="800" y2="${y}"/>`).join('')}</g>
+  <!-- window -->
+  <g class="obj" data-w="window"><rect x="300" y="40" width="190" height="140" rx="10" fill="#1b1f4b" stroke="#fff" stroke-width="8"/>
+    <line x1="395" y1="40" x2="395" y2="180" stroke="#fff" stroke-width="6"/><circle cx="440" cy="85" r="22" fill="#fff3b8"/>
+    <circle cx="335" cy="70" r="3" fill="#fff"/><circle cx="360" cy="140" r="2" fill="#fff"/><circle cx="470" cy="150" r="2.5" fill="#fff"/></g>
+  <!-- rug -->
+  <ellipse cx="420" cy="420" rx="170" ry="38" fill="#ff9fc2" opacity=".8"/>
+  <!-- bed -->
+  <g class="obj" data-w="bed"><rect x="20" y="250" width="240" height="90" rx="16" fill="#5ec8ff"/>
+    <rect x="20" y="200" width="26" height="170" rx="8" fill="#2c7fb8"/><rect x="34" y="232" width="70" height="36" rx="14" fill="#fff"/>
+    <rect x="30" y="335" width="16" height="45" fill="#2c7fb8"/><rect x="236" y="335" width="16" height="45" fill="#2c7fb8"/></g>
+  <!-- cat under bed -->
+  <g class="obj" data-w="cat" id="o-cat"><text x="135" y="380" font-size="46" text-anchor="middle">🐱</text></g>
+  <!-- table with ball and books -->
+  <g class="obj" data-w="table"><rect x="420" y="285" width="190" height="16" rx="6" fill="#8b5a2b"/>
+    <rect x="432" y="300" width="14" height="80" fill="#8b5a2b"/><rect x="584" y="300" width="14" height="80" fill="#8b5a2b"/></g>
+  <g class="obj" data-w="ball" id="o-ball"><text x="455" y="282" font-size="40" text-anchor="middle">⚽</text></g>
+  <g class="obj" data-w="books" id="o-books">
+    <rect x="510" y="240" width="16" height="45" fill="#ff4d4d"/><rect x="528" y="246" width="16" height="39" fill="#3d7bff"/>
+    <rect x="546" y="236" width="16" height="49" fill="#ffd93d"/><rect x="564" y="244" width="16" height="41" fill="#2fbf62"/></g>
+  <!-- lamp -->
+  <g class="obj" data-w="lamp" id="o-lamp"><rect x="716" y="230" width="8" height="150" fill="#555"/><ellipse cx="720" cy="382" rx="30" ry="8" fill="#555"/>
+    <path d="M685 230 L755 230 L740 180 L700 180 Z" fill="#2fbf62"/></g>
+  <!-- chair with hat -->
+  <g class="obj" data-w="chair"><rect x="640" y="300" width="60" height="12" rx="4" fill="#ff9a2e"/><rect x="688" y="230" width="12" height="80" fill="#ff9a2e"/>
+    <rect x="644" y="310" width="8" height="70" fill="#ff9a2e"/><rect x="688" y="310" width="8" height="70" fill="#ff9a2e"/></g>
+  <g class="obj" data-w="hat" id="o-hat"><text x="668" y="300" font-size="38" text-anchor="middle">🎩</text></g>
+  <!-- box with robot -->
+  <g class="obj" data-w="box" id="o-box"><rect x="285" y="330" width="100" height="70" fill="#d79b52" stroke="#a86f2c" stroke-width="4"/>
+    <line x1="285" y1="352" x2="385" y2="352" stroke="#a86f2c" stroke-width="3"/></g>
+  <g class="obj" data-w="robot" id="o-robot"><text x="335" y="345" font-size="40" text-anchor="middle">🤖</text></g>
+  <!-- plant -->
+  <g class="obj" data-w="plant" id="o-plant"><text x="270" y="200" font-size="52" text-anchor="middle">🪴</text></g>
+  <!-- shelf -->
+  <rect x="200" y="200" width="110" height="10" fill="#8b5a2b"/>
+  <!-- clock -->
+  <g class="obj" data-w="clock"><circle cx="120" cy="90" r="38" fill="#fff" stroke="#ff6fa5" stroke-width="8"/>
+    <line x1="120" y1="90" x2="120" y2="64" stroke="#1f2340" stroke-width="5" stroke-linecap="round"/><line x1="120" y1="90" x2="140" y2="90" stroke="#1f2340" stroke-width="5" stroke-linecap="round"/></g>
+  `;
+  r.querySelectorAll('.obj').forEach(o=>o.addEventListener('click',()=>{speak(o.dataset.w==='books'?'books':'a '+o.dataset.w);o.classList.remove('flash');void o.offsetWidth;o.classList.add('flash');}));
+}
+drawRoom();
+const RQ=[
+  {q:'Where is the cat?',a:"It's under the bed.",h:'o-cat'},
+  {q:'Where is the ball?',a:"It's on the table.",h:'o-ball'},
+  {q:'What colour is the lamp?',a:"It's green.",h:'o-lamp'},
+  {q:'How many books are there?',a:'There are four books.',h:'o-books'},
+  {q:"Where is Zip's hat?",a:"It's on the chair.",h:'o-hat'},
+  {q:'Is there a robot in the room?',a:"Yes, there is. It's in the box.",h:'o-robot'}
+];
+let rqi=0;const checked={};
+function roomShow(){document.getElementById('rq').textContent=RQ[rqi].q;document.getElementById('rqn').textContent=rqi+1;document.getElementById('rqt').textContent=RQ.length;document.getElementById('ra').textContent='';}
+document.getElementById('rqSay').onclick=()=>speak(RQ[rqi].q);
+function roomCheck(){
+  document.getElementById('ra').textContent='✔ '+RQ[rqi].a;speak(RQ[rqi].a);
+  const o=document.getElementById(RQ[rqi].h);o.classList.remove('flash');void o.offsetWidth;o.classList.add('flash');
+  if(!checked[rqi]){checked[rqi]=1;addStar(1,document.getElementById('ra'));}
+}
+function roomNext(){rqi=(rqi+1)%RQ.length;roomShow();speak(RQ[rqi].q);}
+roomShow();
+
+/* ---------- ZIP SAYS ---------- */
+const CMDS=[['🦘','jump'],['👏','clap your hands'],['👃','touch your nose'],['🔄','turn around'],['🪑','sit down'],['🧍','stand up'],['👋','wave'],['💃','dance'],['🙆','touch your head'],['🛸','fly like Zip'],['🦶','touch your feet'],['😴','go to sleep'],['🐒','jump like a monkey'],['😂','laugh']];
+let lastCmd=null,lastText='';
+function nextCmd(){
+  let c;do{c=CMDS[Math.floor(Math.random()*CMDS.length)]}while(c===lastCmd);lastCmd=c;
+  const zs=Math.random()<.72;const verb=c[1].charAt(0).toUpperCase()+c[1].slice(1)+'!';
+  document.getElementById('cmd').innerHTML=`<span class="emo">${c[0]}</span>${zs?'<span class="zs">Zip says…</span>':'<span class="nozs">&nbsp;</span>'}<span>${verb}</span>`;
+  lastText=(zs?'Zip says: ':'')+c[1]+'!';speak(lastText);
+}
+function repeatCmd(){if(lastText)speak(lastText);}
+
+/* ---------- INTERVIEW ---------- */
+const IV=[
+  {e:'🏊',k:'swim?',q:'Can you swim?',a:"No, I can't. But I can fly!"},
+  {e:'🐶',k:'a pet?',q:'Have you got a pet?',a:"Yes, I have. I've got a space fish!"},
+  {e:'🍕',k:'pizza?',q:'Do you like pizza?',a:'Yes, I do! I love pizza with stars!'},
+  {e:'🎂',k:'How old…?',q:'How old are you?',a:"I'm 300 years old! I'm a kid on my planet."},
+  {e:'🎨',k:'favourite colour?',q:"What's your favourite colour?",a:'My favourite colour is green, of course!'},
+  {e:'🌍',k:'Where … live?',q:'Where do you live?',a:'I live on planet Blip.'},
+  {e:'👨‍👩‍👧',k:'brothers / sisters?',q:'Have you got a brother or a sister?',a:"Yes! I've got two sisters. They've got four eyes!"},
+  {e:'❓',k:'Your question!',q:'Your own question',a:'Hmm… good question! Ask me, Agent!',own:true}
+];
+document.getElementById('flips').innerHTML=IV.map((c,i)=>`
+  <div class="flip" data-i="${i}"><div class="flip-in">
+    <div class="face front"><span class="emo">${c.e}</span><span class="kw">${c.k}</span>
+      ${c.own?'':`<button class="hintbtn" data-hint="${i}">Hint</button><span class="hinttxt">${c.q}</span>`}</div>
+    <div class="face back"><span class="q2">${c.own?'Your question':c.q}</span><span>👽 ${c.a}</span></div>
+  </div></div>`).join('');
+const ivDone={};
+document.getElementById('flips').addEventListener('click',e=>{
+  const hb=e.target.closest('.hintbtn');
+  if(hb){e.stopPropagation();const f=hb.closest('.flip');f.classList.add('hint');speak(IV[+hb.dataset.hint].q);return;}
+  const f=e.target.closest('.flip');if(!f)return;const i=+f.dataset.i;
+  f.classList.toggle('open');
+  if(f.classList.contains('open')){if(!IV[i].own)speak(IV[i].a);else speak('Hmm... good question!');
+    if(!ivDone[i]){ivDone[i]=1;addStar(1,f);}}
+});
+
+/* ---------- LETTER ---------- */
+const TF=[
+  {s:'Zip has got two eyes.',a:false},
+  {s:'Zip lives on planet Blip.',a:true},
+  {s:"Zip can't swim.",a:true},
+  {s:'Zip likes rain.',a:false},
+  {s:'Yesterday Zip visited the Moon.',a:true},
+  {s:'Now Zip is sleeping.',a:false}
+];
+function openLetter(){
+  document.getElementById('env').style.display='none';
+  document.getElementById('letter').classList.add('show');
+  li=0;letterShow();
+}
+let li=0;
+function letterShow(){
+  const ss=[...document.querySelectorAll('#letter .ls')];
+  ss.forEach((s,k)=>{s.classList.toggle('on',k<=li);s.classList.toggle('cur',k===li&&li<ss.length-1);});
+  if(li>=ss.length-1){document.querySelector('#letter .lnav').style.display='none';showTF();}
+}
+function letterNext(){li++;letterShow();}
+function letterAll(){li=document.querySelectorAll('#letter .ls').length-1;letterShow();}
+function showTF(){
+  const box=document.getElementById('tfs');if(box.style.display==='block')return;box.style.display='block';
+  box.innerHTML=TF.map((t,i)=>`<div class="tf" id="tf${i}"><span class="res"></span><span class="s">${i+1}. ${t.s}</span>
+    <button onclick="tfAns(${i},true)">True</button><button onclick="tfAns(${i},false)">False</button></div>`).join('');
+}
+const tfDone={};
+function tfAns(i,v){
+  const row=document.getElementById('tf'+i);const ok=TF[i].a===v;
+  row.classList.remove('right','wrong');row.classList.add(ok?'right':'wrong');
+  row.querySelector('.res').textContent=ok?'✅':'🔁';
+  if(ok){speak(['Yes!','Correct!','Right!','Well done!'][i%4]);if(!tfDone[i]){tfDone[i]=1;addStar(1,row);}}
+  else speak('Hmm, read again!');
+}
+
+
+/* ---------- BONUS ---------- */
+const YD=[
+  {e:'🌙',k:'the Moon',a:'Yesterday I visited the Moon.'},
+  {e:'⚽',k:'football',a:'I played football with a robot.'},
+  {e:'🍕',k:'pizza',a:'I ate pizza with stars.'},
+  {e:'🎬',k:'a film',a:'I watched a funny film.'},
+  {e:'😴',k:'bed',a:'I went to bed very late!'},
+  {e:'❓',k:'Ask Zip!',a:'Ask me: Did you…? 😄',own:true}
+];
+document.getElementById('yflips').innerHTML=YD.map((c,i)=>`
+  <div class="flip" data-i="${i}" style="height:150px"><div class="flip-in">
+    <div class="face front" style="background:linear-gradient(135deg,#ff6fa5,#ffb020)"><span class="emo">${c.e}</span><span class="kw">${c.k}</span></div>
+    <div class="face back"><span>👽 ${c.a}</span></div>
+  </div></div>`).join('');
+const ydDone={};
+document.getElementById('yflips').addEventListener('click',e=>{
+  const f=e.target.closest('.flip');if(!f)return;const i=+f.dataset.i;f.classList.toggle('open');
+  if(f.classList.contains('open')){speak(YD[i].own?'Ask me! Did you...?':YD[i].a);if(!ydDone[i]){ydDone[i]=1;addStar(1,f);}}
+});
+const YV=[['🎮','played games'],['📺','watched TV'],['🏫','went to school'],['📖','read a book'],['🍝','ate pasta'],['👫','met my friends'],['🚴','rode a bike'],['🎨','drew a picture']];
+document.getElementById('ychips').innerHTML=YV.map(v=>`<button class="chip" data-v="${v[1]}"><span class="emo">${v[0]}</span> ${v[1]}</button>`).join('');
+document.getElementById('ychips').addEventListener('click',e=>{
+  const c=e.target.closest('.chip');if(!c)return;c.classList.toggle('sel');
+  const sel=[...document.querySelectorAll('#ychips .chip.sel')].map(x=>x.dataset.v);
+  const txt=sel.length?('Yesterday I '+(sel.length>1?sel.slice(0,-1).join(', ')+' and '+sel[sel.length-1]:sel[0])+'.'):'';
+  document.getElementById('yans').textContent=txt;if(txt)speak(txt);
+});
+
+/* ---------- FINAL ---------- */
+document.querySelectorAll('.can').forEach(b=>b.onclick=()=>{b.classList.toggle('sel');if(b.classList.contains('sel'))speak('Now I can '+b.textContent.replace(/^.*…/,'').trim());});
+function confetti(){
+  const cols=['#ffc93c','#5fd38d','#ff6fa5','#5ec8ff','#8b7bff'];
+  for(let i=0;i<90;i++){const c=document.createElement('div');c.className='confetti';
+    c.style.left=Math.random()*100+'vw';c.style.background=cols[i%5];c.style.animationDuration=(1.8+Math.random()*1.8)+'s';c.style.animationDelay=(Math.random()*.6)+'s';
+    c.style.borderRadius=Math.random()<.5?'50%':'2px';document.body.appendChild(c);setTimeout(()=>c.remove(),4500);}
+}
+</script>
+</body>
+</html>
