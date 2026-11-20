@@ -82,6 +82,14 @@
   .planet{border-radius:20px;padding:14px 10px;text-align:center;color:#fff;font:800 18px "Baloo 2","Nunito",sans-serif;position:relative}
   .planet .p-emo{font-size:40px;display:block}
   .planet .lock{position:absolute;top:8px;right:10px;font-size:18px}
+  .planet .goal-s{display:block;font:700 13px "Nunito",sans-serif;opacity:.95;margin-top:4px;line-height:1.25}
+  .story{background:#f6f3ff;border:3px solid #e2dcff;border-radius:18px;padding:14px 18px;margin:12px 0;display:grid;gap:10px}
+  .story .row{display:flex;flex-wrap:nowrap;gap:12px;align-items:flex-start;font-size:17px;line-height:1.35;font-weight:600}
+  .story .ic{font-size:28px;line-height:1;flex:0 0 34px}
+  .story .tx{flex:1 1 auto;min-width:0}
+  .story b{color:#5b47e0}
+  .goal{background:#fff6d9;border:3px solid #ffe08a;border-radius:16px;padding:10px 14px;margin:6px 0 10px;font-size:17px;font-weight:700;line-height:1.35}
+  .goal .why{display:block;font-weight:600;color:#6b5a1e;font-size:15px;margin-top:2px}
   /* room */
   .room-wrap{background:#f6f3ff;border-radius:20px;padding:8px}
   svg.room{width:100%;height:auto;display:block}
@@ -111,6 +119,10 @@
   .hintbtn{margin-top:6px;border:0;background:rgba(255,255,255,.25);color:#fff;border-radius:10px;font:700 13px "Nunito",sans-serif;padding:3px 10px;cursor:pointer}
   .hinttxt{font-size:15px;margin-top:4px;background:rgba(0,0,0,.18);border-radius:8px;padding:2px 8px;display:none}
   .flip.hint .hinttxt{display:block}
+  .hintbar{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0}
+  .rule{display:none;background:#eef7ff;border:3px solid #cfe6ff;border-radius:16px;padding:12px 16px;font-size:17px;line-height:1.45;margin-bottom:10px}
+  .rule.show{display:block}
+  .rule .ex{font-weight:800}.rule .ex b{color:#e0457b}
   /* letter */
   .envelope{width:240px;height:160px;margin:10px auto;position:relative;cursor:pointer}
   .letter{background:#fffdf3;border:3px solid #f0e2b4;border-radius:16px;padding:18px 20px;font-size:21px;line-height:1.6;font-weight:700;display:none}
@@ -139,9 +151,9 @@
   .starfly{position:fixed;z-index:60;font-size:34px;pointer-events:none;animation:starfly 1s ease forwards}
   @keyframes starfly{0%{transform:scale(.4);opacity:0}30%{transform:scale(1.4);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(.5);opacity:0}}
   .start-hero{text-align:center;color:#fff;padding:20px 0}
-  .start-hero .zip{width:200px;animation:float 3s ease-in-out infinite}
+  .start-hero .zip{width:340px;max-width:70vw;margin:0 auto;display:block;animation:float 3s ease-in-out infinite}
   @keyframes float{50%{transform:translateY(-12px)}}
-  .start-hero h1{font-size:54px;line-height:1;margin:10px 0}
+  .start-hero h1{font-size:46px;line-height:1;margin:6px 0}
   .start-hero p{font-size:20px;font-weight:700;opacity:.9}
   .zip-wave .arm-r{transform-origin:150px 120px;animation:wave 1s ease-in-out infinite}
   @keyframes wave{50%{transform:rotate(-25deg)}}
@@ -155,6 +167,13 @@
     .start-hero h1{font-size:40px}
     .cmd{font-size:36px}
   }
+
+  #tmr{position:fixed;right:14px;bottom:14px;z-index:50;display:flex;align-items:center;gap:8px;background:rgba(20,22,60,.55);border-radius:999px;padding:5px 12px 5px 5px;color:#fff;font:700 13px "Nunito",sans-serif;cursor:pointer;opacity:.85;user-select:none}
+  #tmr svg{width:34px;height:34px;transform:rotate(-90deg)}
+  #tmr .bg{fill:none;stroke:rgba(255,255,255,.2);stroke-width:4}
+  #tmr .fg{fill:none;stroke-width:4;stroke-linecap:round;transition:stroke .4s}
+  #tmr .t2{opacity:.7;font-weight:600}
+  @keyframes tpulse{50%{transform:scale(1.12)}} #tmr.over svg{animation:tpulse 1s infinite}
 </style>
 </head>
 <body>
@@ -173,21 +192,32 @@
     <div class="start-hero">
       <div class="zip zip-wave blink" id="heroZip"></div>
       <h1>Mission: Help Zip!</h1>
-      <p>A secret mission for a new agent 🚀</p>
-      <p class="ru" style="color:#cfd3ff">Секретная миссия для нового агента</p>
-      <div style="margin-top:22px"><button class="btn green" onclick="go(1)">Start ▶</button></div>
+      <div style="margin-top:22px" id="introBtns"><button class="btn pink" onclick="showIntro()">👽 Meet Zip</button></div>
+      <div class="card" id="introCard" style="display:none;text-align:left;margin:20px auto 0;max-width:820px;color:#1f2340">
+        <div class="zipbox">
+          <div class="bubble">Hello! I'm Zip. I'm from planet Blip. I want to learn English! Can you help me?
+            <button class="say" data-say="Hello! I'm Zip. I'm from planet Blip. I want to learn English! Can you help me?">🔊</button>
+          </div>
+        </div>
+        <div class="story">
+        <div class="row"><span class="ic">👽</span><div class="tx"><b>Это Зип</b> с планеты Блип. Он хочет дружить с детьми.</div></div>
+        <div class="row"><span class="ic">🤔</span><div class="tx"><b>Но</b> он почти не знает английский.</div></div>
+        <div class="row"><span class="ic">🕵️</span><div class="tx"><b>Помоги ему!</b> Пройди 4 задания и получи значок агента ⭐</div></div>
+      </div>
+        <div class="nav" style="justify-content:flex-end"><button class="btn green" onclick="go(1)">Start ▶</button></div>
+      </div>
     </div>
   </section>
 
   <!-- 1 HELLO -->
   <section class="screen" data-step="1">
     <div class="card">
-      <span class="level-tag">HELLO!</span>
-      <h2 class="title">Meet Zip</h2>
+      <span class="level-tag">AGENT CARD</span>
+      <h2 class="title">Hello, Agent!</h2>
       <div class="zipbox">
         <div class="zip zip-wave blink"></div>
-        <div class="bubble">Hello! I'm Zip. I'm from planet Blip. What's your name?
-          <button class="say" data-say="Hello! I'm Zip. I'm from planet Blip. What's your name?">🔊</button>
+        <div class="bubble">Hi, Agent! What's your name?
+          <button class="say" data-say="Hi, Agent! What's your name?">🔊</button>
         </div>
       </div>
       <div class="q"><span class="num">1</span> My name is…</div>
@@ -204,7 +234,7 @@
         <button class="chip" data-v="ok"><span class="emo">😐</span> I'm OK.</button>
         <button class="chip" data-v="tired"><span class="emo">😴</span> I'm tired.</button>
       </div>
-      <div class="nav"><button class="btn ghost" onclick="go(0)">◀ Back</button><button class="btn" onclick="go(2)">Next ▶</button></div>
+      <div class="nav"><button class="btn ghost" onclick="go(0)">◀ Back</button><button class="btn green" onclick="go(3)">Level 1 ▶</button></div>
     </div>
   </section>
 
@@ -215,10 +245,15 @@
       <h2 class="title">Zip needs help!</h2>
       <div class="zipbox">
         <div class="zip blink"></div>
-        <div class="bubble">I want to understand Earth kids. Help me, Agent <span class="nm">Agent</span>! Finish 4 levels and get your Agent badge!
+        <div class="bubble">I want to make friends with Earth kids! But my English is not very good. Can you help me, Agent<span class="nma"></span>?
           <button class="say" data-say-fn="missionTxt">🔊</button>
-          <div class="ru">Помоги Зипу понять землян: пройди 4 уровня и получи значок агента!</div>
         </div>
+      </div>
+      <div class="story">
+        <div class="row"><span class="ic">👽</span><div class="tx"><b>Кто такой Зип?</b> Пришелец с планеты Блип. Он прилетел на Землю, чтобы подружиться с земными детьми.</div></div>
+        <div class="row"><span class="ic">🤔</span><div class="tx"><b>В чём проблема?</b> На Земле все говорят по-английски, а Зип знает его совсем чуть-чуть.</div></div>
+        <div class="row"><span class="ic">🕵️</span><div class="tx"><b>Что делаешь ты?</b> Ты — агент-помощник. Говори с Зипом по-английски: отвечай на его вопросы и задавай свои. Так он научится!</div></div>
+        <div class="row"><span class="ic">⭐</span><div class="tx"><b>Что в конце?</b> Пройди 4 задания, собери звёзды и получи значок агента.</div></div>
       </div>
       <div class="map" id="map"></div>
       <div class="nav"><button class="btn ghost" onclick="go(1)">◀ Back</button><button class="btn green" onclick="go(3)">Level 1 ▶</button></div>
@@ -230,7 +265,7 @@
     <div class="card">
       <span class="level-tag">LEVEL 1</span>
       <h2 class="title">Agent Passport</h2>
-      <div class="ru">Зип задаёт вопросы — ответь вслух и выбери ответ</div>
+      <div class="goal">🎯 Задание: ответь на вопросы Зипа вслух и выбери ответ.<span class="why">Зачем: каждому агенту нужен паспорт. Зип сделает его по твоим ответам.</span></div>
       <div class="row" style="margin-top:6px">
         <div class="grow">
           <div class="q"><span class="num">1</span> How old are you? <button class="say" data-say="How old are you?">🔊</button></div>
@@ -273,7 +308,7 @@
           <div style="margin-top:8px"><button class="btn small pink" onclick="readPassport()">🔊 Zip reads it</button></div>
         </div>
       </div>
-      <div class="nav"><button class="btn ghost" onclick="go(2)">◀ Back</button><button class="btn green" onclick="finishLevel(1,4)">Done! ⭐</button></div>
+      <div class="nav"><button class="btn ghost" onclick="go(1)">◀ Back</button><button class="btn green" onclick="finishLevel(1,4)">Done! ⭐</button></div>
     </div>
   </section>
 
@@ -282,7 +317,7 @@
     <div class="card">
       <span class="level-tag">LEVEL 2</span>
       <h2 class="title">Zip's Room</h2>
-      <div class="ru">Слушай вопрос, ищи на картинке и отвечай. Нажимай на предметы, чтобы услышать слово</div>
+      <div class="goal">🎯 Задание: слушай вопрос, найди вещь на картинке и ответь по-английски.<span class="why">Зачем: у Зипа в комнате беспорядок, и он не знает, как называются земные вещи. Помоги ему!</span></div>
       <div class="row" style="margin-top:8px">
         <div class="grow" style="flex:1.5">
           <div class="room-wrap"><svg class="room" id="room" viewBox="0 0 800 480"></svg></div>
@@ -308,7 +343,7 @@
     <div class="card">
       <span class="level-tag">BREAK TIME</span>
       <h2 class="title">Zip says…</h2>
-      <div class="ru">Встань! Делай движение, только если слышишь «Zip says». Нет «Zip says» — стой на месте!</div>
+      <div class="goal">🎯 Задание: встань! Делай движение, только если слышишь «Zip says». Нет «Zip says» — стой на месте!<span class="why">Зачем: это земная игра, Зип хочет научиться. Покажи ему, как играть!</span></div>
       <div class="cmd" id="cmd"><span class="emo">🛸</span><span>Stand up!</span></div>
       <div style="text-align:center;margin-top:14px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
         <button class="btn pink" onclick="nextCmd()">Next command ▶</button>
@@ -327,8 +362,20 @@
         <div class="zip blink" style="width:90px"></div>
         <div class="bubble" style="font-size:18px">Now YOU ask ME! Choose a card, ask a question, then open the card.
           <button class="say" data-say="Now you ask me! Choose a card, ask a question, then open the card.">🔊</button>
-          <div class="ru">Выбери карточку, задай Зипу вопрос вслух, потом открой её. Застрял — нажми «Hint»</div>
+          <div class="goal">🎯 Задание: выбери карточку и задай Зипу вопрос по-английски, потом открой её. Застрял — нажми «Hint»: 1 раз — начало вопроса, 2 раза — весь вопрос.<span class="why">Зачем: теперь твоя очередь узнать, какой Зип. Друзья всегда спрашивают друг о друге!</span></div>
         </div>
+      </div>
+      <div class="hintbar">
+        <button class="btn small" onclick="document.getElementById('rule').classList.toggle('show')">💡 Как задать вопрос?</button>
+        <button class="btn small ghost" onclick="allHints(1)">Показать начало вопросов</button>
+        <button class="btn small ghost" onclick="allHints(0)">Скрыть подсказки</button>
+      </div>
+      <div class="rule" id="rule">
+        Чтобы задать вопрос, поставь маленькое слово <b>в начало</b> — как будто переворачиваешь фразу:<br>
+        <span class="ex">I can swim → <b>Can</b> you swim?</span><br>
+        <span class="ex">I have got a pet → <b>Have</b> you got a pet?</span><br>
+        <span class="ex">I like pizza → <b>Do</b> you like pizza?</span><br>
+        Если хочешь узнать <b>где, что или сколько</b>, начни с вопросительного слова:<br><span class="ex"><b>Where</b> do you live? — Где ты живёшь?</span><br><span class="ex"><b>How old</b> are you? — Сколько тебе лет?</span>
       </div>
       <div class="flips" id="flips"></div>
       <div class="nav"><button class="btn ghost" onclick="go(5)">◀ Back</button><button class="btn green" onclick="finishLevel(3,7)">Done! ⭐</button></div>
@@ -340,7 +387,7 @@
     <div class="card">
       <span class="level-tag">LEVEL 4</span>
       <h2 class="title">The Secret Letter</h2>
-      <div class="ru">Открой письмо и читай по одному предложению. Потом реши: правда (True) или нет (False)?</div>
+      <div class="goal">🎯 Задание: открой письмо и читай по одному предложению. Потом реши: правда (True) или нет (False)?<span class="why">Зачем: Зип написал тебе первое письмо на английском. Проверь, всё ли ты понял!</span></div>
       <div class="envelope" id="env" onclick="openLetter()">
         <svg viewBox="0 0 240 160" width="240" height="160">
           <rect x="6" y="20" width="228" height="134" rx="14" fill="#ffe08a" stroke="#e8b931" stroke-width="4"/>
@@ -351,7 +398,7 @@
       </div>
       <div class="letter" id="letter">
         <div style="float:right"><button class="say" data-say-fn="letterTxt">🔊</button></div>
-        <span class="ls">Hi, Agent <span class="nm">Agent</span>!</span>
+        <span class="ls">Hi, Agent<span class="nma"></span>!</span>
         <span class="ls">My name is Zip.</span>
         <span class="ls">I live on planet Blip.</span>
         <span class="ls">I've got three eyes and two green arms.</span>
@@ -395,7 +442,7 @@
   <section class="screen" data-step="8">
     <div class="card" style="text-align:center">
       <span class="level-tag">MISSION COMPLETE</span>
-      <h2 class="title">Well done, Agent <span class="nm">Agent</span>!</h2>
+      <h2 class="title">Well done, Agent<span class="nma"></span>!</h2>
       <div style="margin:18px 0 10px">
         <div class="badge"><div class="b1">AGENT</div><div class="b2 nm">Agent</div><div class="b3">👽⭐</div><div class="b1">LEVEL 1</div></div>
       </div>
@@ -482,7 +529,8 @@ function renderVoiceSelect(){
 }
 try{pickVoice();speechSynthesis.onvoiceschanged=pickVoice;}catch(e){}
 function browserSpeak(t){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang=voice?voice.lang:'en-US';u.rate=.9;u.pitch=1;if(voice)u.voice=voice;speechSynthesis.speak(u);}catch(e){}}
-function speak(t){
+function speak(t){/* auto voice off: only 🔊 buttons speak */}
+function speakNow(t){
   const useClaude=T&&(voiceChoice==='claude'||(voiceChoice==='auto'&&!(voice&&scoreVoice(voice)>=40)));
   if(useClaude){try{speechSynthesis.cancel();}catch(e){}T.speak(t,{voice:'airy',rate:.9,language:'en'}).catch(err=>{if(err&&err.code!=='viewer_stopped')browserSpeak(t);});}
   else browserSpeak(t);
@@ -490,18 +538,19 @@ function speak(t){
 (async()=>{try{if(window.claude&&claude.use){const t=await claude.use('tts');if(t){T=t;renderVoiceSelect();}}}catch(e){}})();
 const sayFns={
   howAreYou:()=>`Nice to meet you, ${nameOr('Agent')}! How are you today?`,
-  missionTxt:()=>`I want to understand Earth kids. Help me, Agent ${nameOr('')}! Finish four levels and get your Agent badge!`,
+  missionTxt:()=>`I want to make friends with Earth kids! But my English is not very good. Can you help me, Agent ${nameOr('')}?`,
   letterTxt:()=>[...document.querySelectorAll('#letter .ls.on')].map(s=>s.innerText).join(' ')
 };
 document.addEventListener('click',e=>{
   const b=e.target.closest('.say');if(!b)return;
-  if(b.dataset.say)speak(b.dataset.say);else if(b.dataset.sayFn)speak(sayFns[b.dataset.sayFn]());
+  if(b.dataset.say)speakNow(b.dataset.say);else if(b.dataset.sayFn)speakNow(sayFns[b.dataset.sayFn]());
 });
 function nameOr(d){return S.name||d}
 
 /* ---------- navigation ---------- */
 const dots=document.getElementById('dots');
 for(let i=0;i<STEPS;i++){const d=document.createElement('div');d.className='dot';dots.appendChild(d);}
+function showIntro(){document.getElementById('introCard').style.display='block';document.getElementById('introBtns').style.display='none';speak("Hello! I'm Zip. I'm from planet Blip. I want to learn English! Can you help me?");}
 function go(n){
   S.step=n;
   document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',+s.dataset.step===n));
@@ -513,7 +562,7 @@ function go(n){
 go(0);
 
 /* ---------- voice select ---------- */
-document.getElementById('voiceSel').addEventListener('change',e=>{voiceChoice=e.target.value;try{localStorage.setItem('zipVoice',voiceChoice);}catch(_){}pickVoice();speak('Hello! I am Zip.');});
+document.getElementById('voiceSel').addEventListener('change',e=>{voiceChoice=e.target.value;try{localStorage.setItem('zipVoice',voiceChoice);}catch(_){}pickVoice();speakNow('Hello! I am Zip.');});
 renderVoiceSelect();
 /* ---------- RU toggle ---------- */
 const ruT=document.getElementById('ruToggle');
@@ -537,7 +586,7 @@ function finishLevel(l,next){
 /* ---------- HELLO ---------- */
 const nameIn=document.getElementById('agentName');
 nameIn.addEventListener('input',()=>{S.name=nameIn.value.trim();updateNames();renderPassport();});
-function updateNames(){document.querySelectorAll('.nm').forEach(n=>n.textContent=S.name||'Agent');}
+function updateNames(){document.querySelectorAll('.nm').forEach(n=>n.textContent=S.name||'Agent');document.querySelectorAll('.nma').forEach(n=>n.textContent=S.name?' '+S.name:'');}
 document.getElementById('moodChips').addEventListener('click',e=>{
   const c=e.target.closest('.chip');if(!c)return;
   [...c.parentNode.children].forEach(x=>x.classList.remove('sel'));c.classList.add('sel');S.mood=c.dataset.v;
@@ -546,11 +595,11 @@ document.getElementById('moodChips').addEventListener('click',e=>{
 
 /* ---------- MAP ---------- */
 const LEVELS=[
-  {n:1,t:'Passport',e:'🪪',c:'#8b7bff'},{n:2,t:"Zip's Room",e:'🏠',c:'#5ec8ff'},
-  {n:3,t:'Interview',e:'🎤',c:'#ff6fa5'},{n:4,t:'Secret Letter',e:'✉️',c:'#ffb020'}];
+  {n:1,t:'Passport',e:'🪪',c:'#8b7bff',g:'Зип делает тебе паспорт агента'},{n:2,t:"Zip's Room",e:'🏠',c:'#5ec8ff',g:'Найди потерянные вещи Зипа'},
+  {n:3,t:'Interview',e:'🎤',c:'#ff6fa5',g:'Узнай всё о Зипе'},{n:4,t:'Secret Letter',e:'✉️',c:'#ffb020',g:'Прочитай письмо Зипа'}];
 function renderMap(){
   document.getElementById('map').innerHTML=LEVELS.map(l=>`<div class="planet" style="background:${l.c}">
-    <span class="lock">${S.levels[l.n]?'⭐':'🔒'}</span><span class="p-emo">${l.e}</span>Level ${l.n}<br><span style="font-size:15px">${l.t}</span></div>`).join('');
+    <span class="lock">${S.levels[l.n]?'⭐':'🔒'}</span><span class="p-emo">${l.e}</span>Level ${l.n}<br><span style="font-size:15px">${l.t}</span><span class="goal-s">${l.g}</span></div>`).join('');
 }
 
 /* ---------- PASSPORT ---------- */
@@ -581,7 +630,7 @@ function renderPassport(){
     ${p.pet==='yes'?"I've got a pet.":p.pet==='no'?"I haven't got a pet.":"I "+bl('')+" a pet."}`;
 }
 renderPassport();
-function readPassport(){speak(document.getElementById('passport').innerText.replace('🪪 AGENT PASSPORT','').replace(/\?/g,'something'));}
+function readPassport(){speakNow(document.getElementById('passport').innerText.replace('🪪 AGENT PASSPORT','').replace(/\?/g,'something'));}
 
 /* ---------- ROOM ---------- */
 function drawRoom(){
@@ -641,7 +690,7 @@ const RQ=[
 ];
 let rqi=0;const checked={};
 function roomShow(){document.getElementById('rq').textContent=RQ[rqi].q;document.getElementById('rqn').textContent=rqi+1;document.getElementById('rqt').textContent=RQ.length;document.getElementById('ra').textContent='';}
-document.getElementById('rqSay').onclick=()=>speak(RQ[rqi].q);
+document.getElementById('rqSay').onclick=()=>speakNow(RQ[rqi].q);
 function roomCheck(){
   document.getElementById('ra').textContent='✔ '+RQ[rqi].a;speak(RQ[rqi].a);
   const o=document.getElementById(RQ[rqi].h);o.classList.remove('flash');void o.offsetWidth;o.classList.add('flash');
@@ -651,15 +700,16 @@ function roomNext(){rqi=(rqi+1)%RQ.length;roomShow();speak(RQ[rqi].q);}
 roomShow();
 
 /* ---------- ZIP SAYS ---------- */
-const CMDS=[['🦘','jump'],['👏','clap your hands'],['👃','touch your nose'],['🔄','turn around'],['🪑','sit down'],['🧍','stand up'],['👋','wave'],['💃','dance'],['🙆','touch your head'],['🛸','fly like Zip'],['🦶','touch your feet'],['😴','go to sleep'],['🐒','jump like a monkey'],['😂','laugh']];
-let lastCmd=null,lastText='';
+const CMDS=[['🦘','jump'],['👏','clap your hands'],['👃','touch your nose'],['🔄','turn around'],['🪑','sit down'],['🧍','stand up'],['👋','wave'],['🙆','touch your head'],['🛸','fly like Zip'],['🦶','touch your feet'],['😴','go to sleep'],['🐒','jump like a monkey'],['😂','laugh']];
+let lastCmd=null,lastText='',bag=[];
 function nextCmd(){
-  let c;do{c=CMDS[Math.floor(Math.random()*CMDS.length)]}while(c===lastCmd);lastCmd=c;
+  if(!bag.length){bag=CMDS.slice().sort(()=>Math.random()-.5);if(bag[0]===lastCmd)bag.push(bag.shift());}
+  const c=bag.shift();lastCmd=c;
   const zs=Math.random()<.72;const verb=c[1].charAt(0).toUpperCase()+c[1].slice(1)+'!';
   document.getElementById('cmd').innerHTML=`<span class="emo">${c[0]}</span>${zs?'<span class="zs">Zip says…</span>':'<span class="nozs">&nbsp;</span>'}<span>${verb}</span>`;
-  lastText=(zs?'Zip says: ':'')+c[1]+'!';speak(lastText);
+  lastText=(zs?'Zip says: ':'')+c[1]+'!';speakNow(lastText);
 }
-function repeatCmd(){if(lastText)speak(lastText);}
+function repeatCmd(){if(lastText)speakNow(lastText);}
 
 /* ---------- INTERVIEW ---------- */
 const IV=[
@@ -672,16 +722,21 @@ const IV=[
   {e:'👨‍👩‍👧',k:'brothers / sisters?',q:'Have you got a brother or a sister?',a:"Yes! I've got two sisters. They've got four eyes!"},
   {e:'❓',k:'Your question!',q:'Your own question',a:'Hmm… good question! Ask me, Agent!',own:true}
 ];
+function hintPart(q){const w=q.replace('?','').split(' ');const n=/^(How|What|Where|Have|Do|Can)$/.test(w[0])&&/^(old|do|you|your)$/i.test(w[1]||'')?2:1;return w.slice(0,n).join(' ')+' …?';}
 document.getElementById('flips').innerHTML=IV.map((c,i)=>`
   <div class="flip" data-i="${i}"><div class="flip-in">
     <div class="face front"><span class="emo">${c.e}</span><span class="kw">${c.k}</span>
-      ${c.own?'':`<button class="hintbtn" data-hint="${i}">Hint</button><span class="hinttxt">${c.q}</span>`}</div>
+      ${c.own?'':`<button class="hintbtn" data-hint="${i}">Hint</button><span class="hinttxt" data-full="${c.q.replace(/"/g,'&quot;')}" data-part="${hintPart(c.q)}"></span>`}</div>
     <div class="face back"><span class="q2">${c.own?'Your question':c.q}</span><span>👽 ${c.a}</span></div>
   </div></div>`).join('');
+function setHint(f,lv){const t=f.querySelector('.hinttxt');if(!t)return;f.dataset.h=lv;
+  f.classList.toggle('hint',lv>0);t.textContent=lv===2?t.dataset.full:lv===1?t.dataset.part:'';
+  const b=f.querySelector('.hintbtn');if(b)b.textContent=lv===2?'Hint ✓':lv===1?'Hint +':'Hint';}
+function allHints(lv){document.querySelectorAll('#flips .flip').forEach(f=>setHint(f,lv));}
 const ivDone={};
 document.getElementById('flips').addEventListener('click',e=>{
   const hb=e.target.closest('.hintbtn');
-  if(hb){e.stopPropagation();const f=hb.closest('.flip');f.classList.add('hint');speak(IV[+hb.dataset.hint].q);return;}
+  if(hb){e.stopPropagation();const f=hb.closest('.flip');setHint(f,Math.min(2,(+f.dataset.h||0)+1));return;}
   const f=e.target.closest('.flip');if(!f)return;const i=+f.dataset.i;
   f.classList.toggle('open');
   if(f.classList.contains('open')){if(!IV[i].own)speak(IV[i].a);else speak('Hmm... good question!');
@@ -761,6 +816,25 @@ function confetti(){
     c.style.left=Math.random()*100+'vw';c.style.background=cols[i%5];c.style.animationDuration=(1.8+Math.random()*1.8)+'s';c.style.animationDelay=(Math.random()*.6)+'s';
     c.style.borderRadius=Math.random()<.5?'50%':'2px';document.body.appendChild(c);setTimeout(()=>c.remove(),4500);}
 }
+</script>
+<div id="tmr" title="Время на этом экране / всего. Двойной клик — сбросить таймер перед началом урока">
+  <svg viewBox="0 0 40 40"><circle class="bg" cx="20" cy="20" r="16"/><circle class="fg" id="tmrFg" cx="20" cy="20" r="16" stroke-dasharray="100.5" stroke-dashoffset="100.5"/></svg>
+  <div><div id="tmrStep">0:00 / 5</div><div class="t2" id="tmrAll">всего 0:00</div></div>
+</div>
+<script>
+/* lesson timer: budget (min) per screen, total ≈ 28 */
+const BUDGET={0:5,1:2,3:4,4:4,5:2,6:5,7:5,9:3,8:1};
+let tStart=Date.now(),sStart=Date.now(),curStep=0;
+const _go=go;go=function(n){if(n!==curStep){curStep=n;sStart=Date.now();}_go(n);};
+function fmt(ms){const s=Math.floor(ms/1000);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
+function tick(){const now=Date.now(),b=(BUDGET[curStep]||3)*60000,el=now-sStart,f=Math.min(1,el/b);
+  const fg=document.getElementById('tmrFg');fg.style.strokeDashoffset=100.5*(1-f);
+  fg.style.stroke=el>b?'#ff4d6d':f>.8?'#ffc93c':'#5fd38d';
+  document.getElementById('tmr').classList.toggle('over',el>b);
+  document.getElementById('tmrStep').textContent=fmt(el)+' / '+(BUDGET[curStep]||3)+' мин';
+  const all=now-tStart;document.getElementById('tmrAll').textContent='всего '+fmt(all)+(all>30*60000?' ⚠':'');}
+document.getElementById('tmr').ondblclick=()=>{tStart=sStart=Date.now();tick();};
+setInterval(tick,1000);tick();
 </script>
 </body>
 </html>
