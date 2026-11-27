@@ -216,7 +216,7 @@ input.name{font:800 21px "Baloo 2",sans-serif;padding:10px 14px;border:3px solid
     <select class="toggle" id="voiceSel" title="Voice" style="max-width:170px"></select>
     <button class="toggle" id="muteBtn" title="Zip talks by himself">🔈 Sound: on</button>
     <button class="toggle on" data-go="7">🕵️ Homework</button>
-    <a class="toggle on" href="words.html" style="text-decoration:none;display:inline-flex;align-items:center">🃏 Words</a>
+    <a class="toggle on" href="words.html" style="text-decoration:none;display:inline-flex;align-items:center">🃏 Words</a> <a class="toggle on" id="homeBtn" href="index.html" style="text-decoration:none;display:inline-flex;align-items:center">🏠 Missions</a>
     <button class="toggle" id="ruToggle">RU: all</button>
     <div class="starcount">⭐ <span id="stars">0</span></div>
   </div>
@@ -699,8 +699,9 @@ $('tmr').ondblclick=()=>{tStart=sStart=Date.now();tick();};
 setInterval(tick,1000);tick();
 }
 </script>
+<script>if(!(location.protocol==='file:'||/github\.io$/.test(location.hostname))){var hb=document.getElementById('homeBtn');if(hb)hb.style.display='none';}</script>
 <script>document.addEventListener('click',function(e){var a=e.target.closest('a[href="words.html"]');if(!a)return;
-if(location.protocol==='file:'||/github\.io$/.test(location.hostname))return;
+if(location.protocol==='file:'||/github\.io$/.test(location.hostname)){try{sessionStorage.setItem('zipFromLesson',location.href);}catch(_){}return;}
 e.preventDefault();window.open('https://claude.ai/artifact/UhnCtMGy4WbPr6omzQ2ts2','_blank');});</script>
 </body>
 </html>

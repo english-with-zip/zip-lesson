@@ -295,7 +295,7 @@ select.voice{background:#eef1ff;border:0;border-radius:12px;padding:8px 10px;fon
     <button class="tb" id="muteBtn" title="Zip talks by himself">🔈 Sound: on</button>
     <button class="tb" data-go="map">🗺️ Map</button>
     <button class="tb" data-go="hw">🕵️ Homework</button>
-    <a class="tb" href="words.html" style="text-decoration:none;display:inline-flex;align-items:center">🃏 Words</a>
+    <a class="tb" href="words.html" style="text-decoration:none;display:inline-flex;align-items:center">🃏 Words</a> <a class="tb" id="homeBtn" href="index.html" style="text-decoration:none;display:inline-flex;align-items:center">🏠 Missions</a>
     <button class="tb" id="ruToggle" title="Show all Russian">RU: all</button>
     <div class="starcount">⭐ <span id="stars">0</span>/<span id="starsMax">33</span></div>
   </div>
@@ -916,8 +916,9 @@ wStart();fStart();mStart();iStart();cReset();bStart();dStart();renderMap();updat
 go(location.hash.slice(1)||'start',false);
 }
 </script>
+<script>if(!(location.protocol==='file:'||/github\.io$/.test(location.hostname))){var hb=document.getElementById('homeBtn');if(hb)hb.style.display='none';}</script>
 <script>document.addEventListener('click',function(e){var a=e.target.closest('a[href="words.html"]');if(!a)return;
-if(location.protocol==='file:'||/github\.io$/.test(location.hostname))return;
+if(location.protocol==='file:'||/github\.io$/.test(location.hostname)){try{sessionStorage.setItem('zipFromLesson',location.href);}catch(_){}return;}
 e.preventDefault();window.open('https://claude.ai/artifact/UhnCtMGy4WbPr6omzQ2ts2','_blank');});</script>
 </body>
 </html>

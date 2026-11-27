@@ -527,16 +527,16 @@ function qResult(){const k='words-'+deck.k;const prev=store.get(k)||0;if(qStars>
 
 /* back to the lesson that opened this page (only on the real site; on claude.ai the lesson is in the other tab) */
 if(!(location.protocol==='file:'||/github\.io$/.test(location.hostname)))$('backLesson').style.display='none';
-$('backLesson').onclick=()=>{const gh=location.protocol==='file:'||/github\.io$/.test(location.hostname);
-  if(document.referrer&&/lesson/i.test(document.referrer)&&history.length>1){history.back();return;}
-  if(gh){location.href='index.html';return;}
-  window.close();setTimeout(()=>{if(history.length>1)history.back();},200);};
+// remember which lesson opened the words page, so "◀ Lesson" goes straight back to it
+let fromLesson=null;try{const r=document.referrer||'';if(/\/(index\.html)?$/.test(r.split('#')[0])&&!/lesson/i.test(r))sessionStorage.removeItem('zipFromLesson');fromLesson=sessionStorage.getItem('zipFromLesson');if(!fromLesson&&/lesson[^/]*\.html/i.test(r))fromLesson=r;}catch(e){}
+if(!fromLesson)$('backLesson').textContent='🏠 Missions';
+$('backLesson').onclick=()=>{location.href=fromLesson||'index.html';};
 /* ---------- navigation ---------- */
 const SCREENS=['decks','cards','check'];
 function go(s,push){if(!SCREENS.includes(s))s='decks';if((s==='cards'||s==='check')&&!queue.length&&!Q.length){if(s==='cards')startCards();else startCheck();}
   document.querySelectorAll('.screen').forEach(x=>x.classList.toggle('active',x.dataset.s===s));if(s==='decks')renderDecks();
   if(push!==false&&location.hash!=='#'+s){try{history.pushState(null,'','#'+s);}catch(e){}}
-  const db=document.querySelector('.topbar [data-go="decks"]');if(db)db.style.display=s==='decks'?'none':'';window.scrollTo(0,0);}
+  const db=document.querySelector('.topbar [data-go="decks"]');if(db)db.style.visibility=s==='decks'?'hidden':'';window.scrollTo(0,0);}
 window.addEventListener('popstate',()=>go(location.hash.slice(1)||'decks',false));
 document.addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(g){go(g.dataset.go);return;}const sb=e.target.closest('[data-say]');if(sb)say(sb.dataset.say);});
 document.addEventListener('click',e=>{const b=e.target.closest('.rub');if(!b)return;const box=b.closest('.goal,.wordcard,.result');if(box)box.classList.toggle('open');});
