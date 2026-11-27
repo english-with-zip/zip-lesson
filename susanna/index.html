@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent Susanna · Mission: Help Zip!</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+/* VOICE: playful space mission, same as the trial lesson
+   IDEA: Zip's space house — a planet map of levels, each level a short game
+   PICTURE: Zip himself and his house; big tappable cards
+   COLOUR and TYPE: course colours — night blue sky, Zip green, sun yellow, pink, violet; Baloo 2 + Nunito
+   LAYOUT: one level per screen, white card on the starry sky; phone first, wider on laptop */
+:root{--bg1:#1b1f4b;--bg2:#2b2f78;--card:#fff;--ink:#1f2340;--muted:#6b7090;--zip:#5fd38d;--zipdark:#2fa866;--sun:#ffc93c;--pink:#ff6fa5;--sky:#5ec8ff;--violet:#8b7bff;--ok:#1f9d63;--bad:#e0455b;--radius:22px;color-scheme:light}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0}
+body{font-family:"Nunito",system-ui,sans-serif;color:var(--ink);background:radial-gradient(1200px 700px at 80% -10%,#3b3fa0 0%,transparent 60%),linear-gradient(180deg,var(--bg1),var(--bg2));background-attachment:fixed;min-height:100vh;overflow-x:clip;-webkit-tap-highlight-color:transparent}
+button{font-family:inherit;color:var(--ink);touch-action:manipulation;-webkit-appearance:none;appearance:none}
+#stars-bg{position:fixed;inset:0;pointer-events:none;z-index:0;width:100%;height:100%}
+.wrap{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:12px 14px 80px}
+h1,h2,h3{font-family:"Baloo 2","Nunito",sans-serif;margin:0}
+/* top bar */
+.topbar{display:flex;align-items:center;gap:8px;color:#fff;margin-bottom:12px;flex-wrap:wrap}
+.brand{font:800 21px "Baloo 2",sans-serif;display:flex;align-items:center;gap:8px}
+.dots{flex:1 0 auto}
+.brand .bz{width:34px;display:inline-block}
+.tb{background:rgba(255,255,255,.14);color:#fff;border:0;padding:8px 12px;border-radius:999px;font:800 14px "Nunito",sans-serif;cursor:pointer;min-height:40px}
+.tb.on{background:var(--sun);color:var(--ink)}
+select.tb{max-width:190px}select.tb option{color:#1f2340}
+.starcount{background:rgba(255,255,255,.14);padding:7px 14px;border-radius:999px;font-weight:800;font-size:17px;white-space:nowrap}
+/* screens */
+.screen{display:none;animation:pop .4s ease}.screen.active{display:block}
+@keyframes pop{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.card{background:var(--card);border-radius:var(--radius);padding:20px;box-shadow:0 18px 50px rgba(0,0,0,.25)}
+.level-tag{display:inline-block;background:var(--violet);color:#fff;font:800 14px "Baloo 2",sans-serif;padding:4px 14px;border-radius:999px;margin-bottom:6px;letter-spacing:.5px}
+.title{font-size:32px;line-height:1.1;margin-bottom:6px}
+.ru{color:var(--muted);font-size:15px;font-weight:700;margin-top:4px;display:none}
+.goal.open .ru,.help.open .ru,.wordcard.open .ru,.result.open .ru,body.ru-all .ru{display:block}
+.rub{border:0;background:#fff;border-radius:999px;font:800 13px "Nunito",sans-serif;padding:3px 10px;margin-left:6px;cursor:pointer;box-shadow:0 2px 0 #e0c266;vertical-align:middle;min-height:28px;color:var(--ink)}
+.help .rub,.wordcard .rub{box-shadow:0 2px 0 #9ed5f1}
+.goal ol{margin:2px 0 0;padding-left:22px}.goal li{margin:2px 0}
+.dots{display:flex;gap:6px;justify-content:center}
+.dot{flex:none;width:13px;height:13px;border-radius:50%;background:rgba(255,255,255,.25);border:0;padding:0;cursor:pointer}
+.dot.on{background:var(--sun);transform:scale(1.25)}.dot.done{background:var(--zip)}
+/* task box (as in the trial lesson) */
+.goal{background:#fff6d9;border:3px solid #ffe08a;border-radius:16px;padding:10px 14px 10px 50px;margin:6px 0 12px;font-size:18px;font-weight:800;line-height:1.35;position:relative;color:var(--ink)}
+.goal::before{content:"🎯";position:absolute;left:13px;top:9px;font-size:24px}
+.goal .ru{color:#6b5a1e;font-size:15px}
+/* Zip */
+.zipbox{display:flex;gap:12px;align-items:flex-end;margin:8px 0 12px}
+.zipbox .zip{width:96px;flex:0 0 auto}
+.bubble{position:relative;background:#f1f6ff;border:3px solid #dbe6ff;border-radius:20px;padding:12px 14px;font-size:19px;font-weight:800;flex:1;color:var(--ink)}
+.bubble:before{content:"";position:absolute;left:-14px;bottom:18px;border:10px solid transparent;border-right-color:#dbe6ff}
+.say{border:0;background:var(--sky);color:#fff;border-radius:50%;width:42px;height:42px;font-size:18px;cursor:pointer;box-shadow:0 3px 0 #2c9bd6;vertical-align:middle;flex:none}
+.say:active{transform:translateY(2px);box-shadow:none}
+/* buttons */
+.btn{border:0;cursor:pointer;font:800 19px "Baloo 2",sans-serif;padding:11px 22px;border-radius:16px;background:var(--sun);color:var(--ink);box-shadow:0 5px 0 #d9a21a;min-height:50px}
+.btn:active{transform:translateY(3px);box-shadow:0 2px 0 #d9a21a}
+.btn.green{background:var(--zip);box-shadow:0 5px 0 var(--zipdark);color:#fff}
+.btn.pink{background:var(--pink);box-shadow:0 5px 0 #d94784;color:#fff}
+.btn.ghost{background:#eef1ff;box-shadow:0 5px 0 #c9cff0}
+.btn.blue{background:#dff4ff;box-shadow:0 5px 0 #9ed5f1}
+.btn.small{font-size:16px;padding:7px 14px;min-height:44px}
+.nav{display:flex;justify-content:space-between;align-items:center;margin-top:18px;gap:10px;flex-wrap:wrap}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.center{text-align:center}
+/* talk lines (exercise / feedback) */
+.talk:empty{display:none}
+.talk{color:var(--ink);background:#effcf6;border:3px solid #bfeed3;border-radius:18px;padding:10px 14px;margin-top:12px;display:grid;gap:6px;min-height:56px}
+.line{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font:800 20px "Baloo 2",sans-serif}
+.who{font:800 13px "Nunito",sans-serif;border-radius:999px;padding:3px 10px;flex:none}
+.who.zipw{background:#dcfbe9;color:#17734a}.who.you{background:#ffe1ec;color:#a3285a}
+.ok{color:var(--ok)}.no{color:var(--bad)}
+/* rule box */
+.help{display:none;background:#eef7ff;border:3px solid #cfe6ff;border-radius:18px;padding:12px 14px;margin:6px 0 12px;color:var(--ink)}
+.help.show{display:block}
+.rrow{font:800 19px "Baloo 2",sans-serif;margin:5px 0;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.rt{font:800 20px "Baloo 2",sans-serif;margin:0 0 6px;color:#24507a;padding-right:56px}
+.rts{font:700 15px "Nunito",sans-serif;color:var(--muted);margin:-4px 0 8px;padding-right:56px}
+.help .rrow{background:#fff;border-radius:12px;padding:6px 10px}
+.rcards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:6px 0 10px;clear:both}
+.rc{background:#fff;border-radius:14px;padding:8px;text-align:center}
+.rh{font:800 26px "Baloo 2",sans-serif;color:#5b47e0;line-height:1}
+.ra{display:flex;justify-content:center;align-items:flex-end;gap:2px;min-height:48px}
+.ra span[data-av]{display:inline-block}
+.rn{font:800 14px "Nunito",sans-serif;color:var(--muted)}
+.rex{display:grid;gap:6px}
+.rx{background:#fff;border-radius:12px;padding:8px 10px;display:flex;flex-wrap:wrap;align-items:center;gap:8px;font:800 19px "Baloo 2",sans-serif}
+.rx small{font:700 15px "Nunito",sans-serif;color:var(--muted)}
+.rx .ans{background:#effcf6;border-radius:10px;padding:0 8px}
+.pill{background:#fff;border:3px solid #cfe6ff;border-radius:12px;padding:0 10px}
+.ipa{font-family:"Nunito",sans-serif;font-weight:800;background:#fff;border:2px solid #cfd5f5;border-radius:8px;padding:0 6px;white-space:nowrap}
+.x{color:var(--bad);text-decoration:line-through}
+/* progress in a level */
+.prog{display:flex;gap:6px;justify-content:center;margin:4px 0 10px;flex-wrap:wrap}
+.pd{width:14px;height:14px;border-radius:50%;background:#e3e7fb}
+.pd.cur{background:var(--sun);transform:scale(1.25)}.pd.good{background:var(--zip)}.pd.bad{background:#ffb3bf}
+.lvstars{font:800 16px "Nunito",sans-serif;color:var(--muted);text-align:center}
+/* option buttons */
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:10px}
+.opt{border:3px solid #e3e7fb;background:#fff;border-radius:16px;padding:10px 12px;font:800 20px "Baloo 2",sans-serif;cursor:pointer;min-height:58px;display:flex;align-items:center;justify-content:center;gap:6px;text-align:center}
+.opt.right{background:#dcfbe9;border-color:var(--ok)}
+.opt.wrong{background:#ffe3e7;border-color:#f3a9b5}
+.opt:disabled{cursor:default}
+.shake{animation:shake .45s}
+@keyframes shake{20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
+/* map */
+.map{position:relative;width:min(100%,620px);aspect-ratio:1;margin:10px auto}
+.map .orb{position:absolute;inset:13%;border:3px dashed #d9d2ff;border-radius:50%}
+.map .sun{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:26%;text-align:center;font:800 15px "Baloo 2",sans-serif;color:var(--muted)}
+.map .planet{position:absolute;transform:translate(-50%,-50%);width:24%}
+.planet{border:0;background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;padding:6px 2px;font:800 16px "Baloo 2",sans-serif;color:var(--ink);text-align:center}
+.planet .ball{position:relative;width:96px;height:96px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:inset -14px -14px 0 rgba(0,0,0,.14),inset 8px 8px 0 rgba(255,255,255,.25),0 8px 18px rgba(0,0,0,.18);transition:transform .15s}
+.planet:hover .ball,.planet:active .ball{transform:scale(1.06)}
+.planet .ball::after{content:"";position:absolute;left:-14px;right:-14px;top:50%;height:22px;margin-top:-11px;border:4px solid rgba(255,255,255,.55);border-radius:50%;transform:rotate(-18deg);pointer-events:none}
+.planet .p-emo{font-size:46px;line-height:1;position:relative;z-index:1}
+.planet .p-lv{font-size:15px;color:var(--muted);line-height:1}.planet .p-t{font-size:17px;line-height:1.1}
+.planet .p-best{font:800 13px "Nunito",sans-serif;background:#fff6d9;border:2px solid #ffe08a;border-radius:999px;padding:1px 8px}
+@media (max-width:640px){.planet .ball{width:64px;height:64px}.planet .p-emo{font-size:28px}.planet .ball::after{left:-9px;right:-9px;height:14px;margin-top:-7px;border-width:3px}.planet .p-t{font-size:12px}.planet .p-lv{display:none}.map{margin:34px auto 30px}.map .planet{width:27%;gap:3px}.map .sun svg{width:70%}.planet .p-best{font-size:11px;padding:0 5px}.map .sun{font-size:12px}}
+.example{background:#eef7ff;border:2px dashed #9ed5f1;border-radius:14px;padding:8px 12px;font-size:18px;font-weight:700;margin:4px auto 10px;max-width:520px;text-align:center}
+.example .exw{display:inline-block;background:#fff;border:2px solid var(--violet);border-radius:10px;padding:0 10px;font-weight:800;color:var(--violet)}
+.example .arrow{margin:0 4px}
+/* start scene */
+.badge2{display:inline-block;background:var(--sun);color:var(--ink);font:800 15px "Nunito",sans-serif;padding:6px 14px;border-radius:999px;box-shadow:0 3px 0 #e0a800}
+.scene{position:relative;max-width:560px;margin:6px auto 0}
+.scene-svg{width:100%;display:block;overflow:hidden}
+.rocket{animation:fly 7s linear infinite}
+@keyframes fly{0%{transform:translate(-60px,110px) rotate(-14deg)}100%{transform:translate(460px,0px) rotate(-14deg)}}
+.smoke{animation:smoke 2.4s ease-in-out infinite}
+@keyframes smoke{0%,100%{transform:translateY(0);opacity:1}50%{transform:translateY(-6px);opacity:.6}}
+.blinkl{animation:bl 1.2s steps(2) infinite}@keyframes bl{50%{fill:#ffd36b}}
+.win{animation:winglow 2.6s ease-in-out infinite}.w2{animation-delay:.8s}.w3{animation-delay:1.6s}
+@keyframes winglow{50%{fill:#fff6c7}}
+.door{position:absolute;left:43.5%;width:13%;top:62%;height:24.5%;border:4px solid #2a86c4;border-bottom:0;border-radius:40px 40px 0 0;background:#ff9cc6;cursor:pointer;padding:0;transform-origin:left center;transition:transform .6s;z-index:2}
+.door .knob{position:absolute;right:16%;top:52%;width:9px;height:9px;border-radius:50%;background:#ffc93c}
+.door .dpanel{position:absolute;inset:18% 22% 30%;border:3px solid rgba(255,255,255,.55);border-radius:20px 20px 4px 4px}
+.door.knock{animation:knock .25s}@keyframes knock{30%{transform:translateX(-3px) rotate(-2deg)}70%{transform:translateX(3px) rotate(2deg)}}
+.door.open{background:#1f2340;pointer-events:none;animation:none}.door.open .dpanel,.door.open .knob{display:none}
+.door:not(.open){animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 8px rgba(255,201,60,.45)}}
+.zipout{position:absolute!important;left:37%;width:26%!important;top:46%;opacity:0;transform:translateY(30px) scale(.4);transition:all .5s cubic-bezier(.3,1.6,.5,1);z-index:1;animation:none!important}
+.zipout.show{opacity:1;transform:translateY(-8px) scale(1);z-index:3;filter:drop-shadow(0 0 0 #fff) drop-shadow(0 4px 6px rgba(0,0,0,.35))}
+.knocks{display:flex;gap:8px;justify-content:center;margin-top:8px}
+.knocks span{width:14px;height:14px;border-radius:50%;background:rgba(255,255,255,.25)}.knocks span.on{background:var(--sun)}
+/* start */
+.start-hero{text-align:center;color:#fff;padding:14px 0}
+.start-hero .zip{width:280px;max-width:62vw;margin:0 auto;display:block;animation:float 3s ease-in-out infinite}
+@keyframes float{50%{transform:translateY(-12px)}}
+.start-hero h1{font-size:44px;line-height:1.05;margin:6px 0}
+.story{background:#f6f3ff;border:3px solid #e2dcff;border-radius:18px;padding:12px 16px;margin:12px 0;display:grid;gap:8px;color:var(--ink);text-align:left}
+.story .r{display:flex;gap:12px;align-items:flex-start;font-size:17px;font-weight:700;line-height:1.35}
+.story .ic{font-size:26px;flex:0 0 32px}
+.story b{color:#5b47e0}
+/* warm-up photo */
+.photo{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;max-width:330px;margin:6px auto;background:#f6f3ff;border-radius:18px;padding:8px}
+.cell{position:relative;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:44px;background:#fff;border-radius:12px;overflow:hidden}
+.cell .cov{cursor:pointer;position:absolute;inset:0;background:linear-gradient(135deg,#8b7bff,#5ec8ff);display:flex;align-items:center;justify-content:center;font-size:26px;color:#fff;transition:opacity .35s}
+.cell.open .cov{opacity:0;pointer-events:none}
+.cell:not(.open) .cov{animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{50%{filter:brightness(1.15)}}
+/* house */
+.house{max-width:520px;margin:6px auto}
+.roof{height:0;border-left:50% solid transparent}
+.roofsvg{display:block;width:100%;height:auto}
+.rooms{display:grid;grid-template-columns:1fr 1fr;gap:8px;background:#d79b52;padding:8px;border-radius:0 0 16px 16px}
+.room{border:0;border-radius:12px;min-height:92px;cursor:pointer;font:800 17px "Baloo 2",sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;position:relative}
+.room .re{font-size:30px}
+.room.garden{grid-column:1/-1;background:#c9f2c9}
+.room.found{outline:4px solid var(--ok)}
+.room.miss{outline:4px solid #f3a9b5}
+.room .zp{position:absolute;right:6px;bottom:4px;width:40px}
+/* who card */
+.who-card{display:flex;align-items:center;justify-content:center;gap:10px;background:#f6f3ff;border-radius:18px;padding:12px;margin:6px 0}
+.game{border:3px dashed #e2dcff;border-radius:20px;padding:10px 12px 12px;margin-top:12px;background:#fcfbff}
+.gstars{display:inline-block;float:right;background:#fff6d9;border:2px solid #ffe08a;border-radius:999px;padding:2px 12px;font:800 16px "Nunito",sans-serif;color:var(--ink);letter-spacing:0}
+.center>.gstars{float:none;margin-bottom:6px}
+.bump{animation:bump .5s}@keyframes bump{40%{transform:scale(1.35)}}
+.gtag{font:800 13px "Nunito",sans-serif;color:#8b7bff;letter-spacing:1px;margin-bottom:2px}
+.rooms2{display:grid;grid-template-columns:1fr 1fr;gap:8px;background:#d79b52;padding:8px;border-radius:0 0 16px 16px}
+.rm{border-radius:12px;padding:6px;display:flex;flex-direction:column;align-items:center;gap:4px}
+.rm.garden{grid-column:1/-1}
+.rm .rl2{font:800 15px "Baloo 2",sans-serif}
+.rm .objs{display:flex;gap:8px}
+.obj{border:0;background:rgba(255,255,255,.65);border-radius:12px;width:64px;height:64px;font-size:38px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.obj.no{opacity:.3}.obj.yes{background:#dcfbe9;outline:3px solid var(--ok)}
+.obj svg{width:52px}
+.mem{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:8px}
+.mc{perspective:800px;height:118px;cursor:pointer;border:0;background:none;padding:0}
+.mc .in{position:relative;width:100%;height:100%;transition:transform .45s;transform-style:preserve-3d}
+.mc.open .in,.mc.done .in{transform:rotateY(180deg)}
+.mc .f{position:absolute;inset:0;-webkit-backface-visibility:hidden;backface-visibility:hidden;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:6px}
+.mc .bk{background:linear-gradient(135deg,#8b7bff,#5ec8ff);color:#fff;font-size:34px}
+.mc .fr{background:#fff;border:3px solid #e3e7fb;transform:rotateY(180deg);font:800 16px "Baloo 2",sans-serif;line-height:1.15}
+.mc .fr .pic{display:flex;align-items:flex-end;gap:2px;font-size:30px}
+.mc .fr .pic svg{width:42px}
+.mc.done .fr{border-color:var(--ok);background:#effcf6}
+.wheelbox{position:relative;max-width:260px;margin:6px auto}
+.pointer{position:absolute;left:50%;top:-6px;transform:translateX(-50%);font-size:28px;color:#e0455b;z-index:2}
+.wheel{width:100%;height:auto;transition:transform 2.6s cubic-bezier(.17,.67,.2,1)}
+.arena{position:relative;height:380px;background:linear-gradient(180deg,#1b1f4b,#3b3fa0);border-radius:18px;overflow:hidden;display:flex;align-items:center;justify-content:center;margin-top:6px}
+.bub{position:absolute;bottom:-100px;width:100px;height:100px;border-radius:50%;border:0;background:radial-gradient(circle at 35% 30%,#ffffff,#bfe8ff 45%,#7fc9f5);font:800 18px "Baloo 2",sans-serif;color:#1f2340;cursor:pointer;animation:rise linear forwards;display:flex;align-items:center;justify-content:center;text-align:center;padding:4px}
+.bub.pop{animation:pop2 .35s forwards}.bub.badtap{background:#ffd0d6}
+@keyframes rise{to{transform:translateY(-500px)}}
+@keyframes pop2{to{transform:scale(1.6);opacity:0}}
+.letter{background:#fffdf3;border:3px solid #f0e2b4;border-radius:16px;padding:12px 16px;font:700 19px "Nunito",sans-serif;line-height:1.5}
+.letter p{margin:2px 0}
+.tfs{display:grid;gap:8px;margin-top:10px}
+.tf{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:#f5f6ff;border-radius:14px;padding:8px 10px;font:800 18px "Baloo 2",sans-serif}
+.tf .s{flex:1;min-width:180px}
+.tf button{border:0;border-radius:12px;font:800 16px "Baloo 2",sans-serif;padding:8px 14px;cursor:pointer;background:#fff;box-shadow:0 3px 0 #d7dbf3;min-height:44px}
+.tf.right{background:#dcfbe9}.tf.wrong{background:#ffe3e7}
+@media (max-width:640px){.mem{grid-template-columns:repeat(3,minmax(0,1fr))}.mc{height:108px}.obj{width:56px;height:56px;font-size:32px}}
+.who-card .z{width:70px}
+.family{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;background:#f6f3ff;border-radius:18px;padding:10px;margin:0 0 10px}
+.fm{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;font:800 15px "Baloo 2",sans-serif;min-width:58px}
+.who-card .act{font-size:58px}
+.who-card .nm{font:800 22px "Baloo 2",sans-serif;background:#fff;border-radius:12px;padding:2px 12px}
+.q-big{font:800 24px "Baloo 2",sans-serif;text-align:center;margin:6px 0;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
+.gap{display:inline-block;min-width:52px;min-height:1.1em;vertical-align:bottom;border-bottom:4px solid var(--violet);text-align:center;color:var(--violet)}
+/* big word */
+.wordcard{text-align:center;background:#f6f3ff;border-radius:18px;padding:12px}
+.wordcard .e{font-size:60px;line-height:1.1}
+.wordcard .w{font:800 32px "Baloo 2",sans-serif}
+/* zip says */
+.cmd{font:800 40px "Baloo 2",sans-serif;text-align:center;padding:22px 10px;border-radius:24px;background:linear-gradient(135deg,#dff7ea,#d6ecff);min-height:160px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.cmd .emo{font-size:58px}.cmd .zs{color:var(--zipdark);font-size:28px}
+/* results */
+.result{display:none;margin-top:14px;border:3px solid #e2dcff;border-radius:20px;padding:14px;background:#fbfaff}
+.result.show{display:block}
+.result h3{font-size:26px;text-align:center}
+.bigstars{font-size:40px;text-align:center;letter-spacing:4px;margin:4px 0}
+.rlist{display:grid;gap:6px;margin:10px 0}
+.rl{display:flex;gap:8px;align-items:flex-start;background:#fff;border-radius:12px;padding:8px 10px;font-weight:800;font-size:16px;line-height:1.3}
+.rl .ic{font-size:18px;flex:none}
+.rl small{display:block;font-weight:700;color:var(--muted)}
+/* final badge */
+.badge{width:220px;height:220px;margin:0 auto;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff3b8,#ffc93c 55%,#f0a500);display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 0 0 10px #fff,0 0 0 18px #ffc93c,0 20px 50px rgba(0,0,0,.35);text-align:center;font-family:"Baloo 2",sans-serif}
+.badge .b1{font-size:14px;font-weight:800;color:#8a5a00;letter-spacing:1px}.badge .b2{font-size:30px;font-weight:800;color:#5a3a00;line-height:1}.badge .b3{font-size:42px}
+.cans{display:flex;flex-direction:column;gap:8px;max-width:520px;margin:12px auto}
+.can{border:3px solid #e3e7fb;background:#fff;border-radius:14px;padding:10px 14px;font:800 19px "Baloo 2",sans-serif;cursor:pointer;text-align:left;min-height:50px}
+.can.sel{background:#dcfbe9;border-color:var(--ok)}
+/* homework */
+.hwtabs{display:flex;gap:8px;margin:6px 0}
+.hwtab{border:0;border-radius:14px;padding:8px 18px;font:800 19px "Baloo 2",sans-serif;background:#eef1ff;box-shadow:0 4px 0 #c9cff0;cursor:pointer;min-height:48px}
+.hwtab.on{background:var(--violet);color:#fff;box-shadow:0 4px 0 #5b47e0}
+.hwp{display:none}.hwp.on{display:block}
+.things{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:8px 0}
+.thing{border:3px solid #e3e7fb;background:#fff;border-radius:14px;padding:6px 12px;font:800 17px "Nunito",sans-serif;cursor:pointer;min-height:48px;display:flex;align-items:center;gap:6px}
+.thing .e{font-size:26px}
+.thing.sel{border-color:var(--violet);background:#efeaff;transform:scale(1.06)}
+.thing.done{opacity:.35;pointer-events:none}
+.room .placed{font-size:20px;line-height:1}
+/* misc */
+.confetti{position:fixed;top:-20px;width:10px;height:16px;z-index:150;pointer-events:none;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+.starfly{position:fixed;z-index:160;font-size:32px;pointer-events:none;animation:starfly 1s ease forwards}
+@keyframes starfly{0%{transform:scale(.4);opacity:0}30%{transform:scale(1.4);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(.5);opacity:0}}
+.zip-wave .arm-r{transform-origin:150px 120px;animation:wave 1s ease-in-out infinite}
+@keyframes wave{50%{transform:rotate(-25deg)}}
+.blink .eye{animation:blink 4s infinite}
+@keyframes blink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
+.eye{transform-box:fill-box;transform-origin:center}
+select.voice{background:#eef1ff;border:0;border-radius:12px;padding:8px 10px;font:700 14px "Nunito",sans-serif;max-width:100%}
+#tmr{position:fixed;right:12px;bottom:12px;z-index:120;display:flex;align-items:center;gap:8px;background:rgba(20,22,60,.85);border-radius:999px;padding:5px 14px 5px 5px;color:#fff;font:700 14px "Nunito",sans-serif;cursor:pointer;user-select:none}
+#tmr svg{width:36px;height:36px;transform:rotate(-90deg)}
+#tmr .bg{fill:none;stroke:rgba(255,255,255,.2);stroke-width:4}
+#tmr .fg{fill:none;stroke-width:4;stroke-linecap:round;transition:stroke .4s}
+#tmr .t2{opacity:.75;font-weight:600;font-size:12px}
+#tmr.over{box-shadow:0 0 0 5px rgba(255,77,109,.5)}
+@media (max-width:640px){
+  .brand .bt{display:none}
+  .title{font-size:26px}.start-hero h1{font-size:34px}
+  .card{padding:14px}
+  .map{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .zipbox .zip{width:70px}.bubble{font-size:17px}
+  .goal{font-size:17px}
+  .cmd{font-size:32px}
+  #tmr{display:none}
+  .dots{display:none}
+  .brand{flex:1}
+  .q-big{font-size:21px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+/* word cards */
+.decks{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:8px}
+.deck{border:0;border-radius:20px;padding:16px;text-align:left;cursor:pointer;color:#fff;box-shadow:0 5px 0 rgba(0,0,0,.18);font:800 22px "Baloo 2",sans-serif}
+.deck small{display:block;font:700 15px "Nunito",sans-serif;opacity:.95;margin-top:4px}
+.deck .bar{height:10px;background:rgba(255,255,255,.35);border-radius:9px;margin-top:10px;overflow:hidden}.deck .bar i{display:block;height:100%;background:#fff;border-radius:9px}
+.flip{position:relative;max-width:360px;height:330px;margin:8px auto 14px;perspective:900px;cursor:pointer}
+.face{position:absolute;inset:0;border-radius:24px;backface-visibility:hidden;-webkit-backface-visibility:hidden;transition:transform .55s;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px;text-align:center}
+.front{background:linear-gradient(160deg,#fff6d9,#ffe7a8);border:4px solid #ffd25e}
+.back{background:#eef7ff;border:4px solid #9ed5f1;transform:rotateY(180deg)}
+.flip.on .front{transform:rotateY(-180deg)}.flip.on .back{transform:rotateY(0)}
+.pic{font-size:110px;line-height:1.1}.pic.small{font-size:54px}
+.hint{font:800 16px "Nunito",sans-serif;color:var(--muted);margin-top:10px}
+.word{font:800 40px "Baloo 2",sans-serif;line-height:1.1;margin:4px 0}
+.ex{font-size:19px;font-weight:700;margin:6px 0 8px}
+.say.big{font-size:22px}
+.knowrow{gap:12px;visibility:hidden}.knowrow.show{visibility:visible}
+.picopts{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;max-width:420px;margin:8px auto}
+.picopt{border:3px solid #e4e6ff;background:#fff;border-radius:20px;font-size:64px;padding:10px 0;cursor:pointer;box-shadow:0 4px 0 #e4e6ff}
+.picopt.right{border-color:var(--ok);background:#e6f8ee}.picopt.wrong{border-color:var(--bad);background:#fdecef;opacity:.6}
+@media (max-width:420px){.flip{height:300px}.pic{font-size:96px}.picopt{font-size:54px}}
+.menu{display:grid;gap:12px;margin-top:10px}
+.mi{display:flex;align-items:center;gap:14px;text-decoration:none;color:#fff;border-radius:20px;padding:14px 18px;box-shadow:0 5px 0 rgba(0,0,0,.18);font:800 22px "Baloo 2",sans-serif}
+.mi .e{font-size:40px}.mi small{display:block;font:700 15px "Nunito",sans-serif;opacity:.95}
+#muteBtn.muted{background:#ffc93c;color:#1f2340}
+</style>
+</head>
+<body>
+<svg id="stars-bg"></svg>
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand"><span class="bz zipmini"></span><span class="bt">Mission: Help Zip!</span></div>
+    <div class="dots"></div>
+    <select class="tb voicetb" id="voiceSel" title="Voice"></select>
+    <button class="tb" id="muteBtn" title="Zip talks by himself">🔈 Sound: on</button>
+  </div>
+  <section class="screen active">
+    <div class="card">
+      <span class="level-tag">AGENT SUSANNA</span>
+      <h2 class="title">🕵️ My missions</h2>
+      <div class="zipbox"><div class="zip blink"></div><div class="bubble">Hi, Agent Susanna! Choose a mission! <button class="say" data-say="Hi, Agent Susanna! Choose a mission!">🔊</button></div></div>
+      <div class="menu">
+        <a class="mi" href="lesson-2.html" style="background:#ff6fa5"><span class="e">🏠</span><span>Lesson 2<small>Zip's Space House</small></span></a>
+        <a class="mi" href="lesson-1.html" style="background:#8b7bff"><span class="e">🏫</span><span>Lesson 1<small>Zip goes to Earth school</small></span></a>
+        <a class="mi" href="words.html" style="background:#2fbf62"><span class="e">🃏</span><span>Word cards<small>Lessons 1–2</small></span></a>
+      </div>
+    </div>
+  </section>
+</div>
+<script>
+{
+document.addEventListener('click',e=>{const sb=e.target.closest('[data-say]');if(sb)say(sb.dataset.say);});
+/* ---------- Zip ---------- */
+function zipSVG(o){o=o||{};const B=o.body||"#5fd38d",L=o.belly||"#8ce6ae",D=o.dark||"#2fa866",A=o.acc||"";return `<svg viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;overflow:visible">
+<line x1="80" y1="40" x2="66" y2="8" stroke="${D}" stroke-width="6" stroke-linecap="round"/><line x1="120" y1="40" x2="134" y2="8" stroke="${D}" stroke-width="6" stroke-linecap="round"/>
+<circle cx="66" cy="8" r="9" fill="#ffc93c"/><circle cx="134" cy="8" r="9" fill="#ff6fa5"/>
+<g class="arm-l"><path d="M48 120 Q20 130 18 160" stroke="${B}" stroke-width="14" fill="none" stroke-linecap="round"/></g>
+<g class="arm-r"><path d="M152 120 Q182 100 186 74" stroke="${B}" stroke-width="14" fill="none" stroke-linecap="round"/></g>
+<ellipse cx="100" cy="125" rx="58" ry="70" fill="${B}"/><ellipse cx="100" cy="150" rx="34" ry="36" fill="${L}"/>
+<rect x="66" y="188" width="18" height="26" rx="9" fill="${D}"/><rect x="116" y="188" width="18" height="26" rx="9" fill="${D}"/>
+<g class="eye"><ellipse cx="70" cy="92" rx="15" ry="17" fill="#fff"/><circle cx="73" cy="95" r="7" fill="#1f2340"/><circle cx="76" cy="91" r="2.5" fill="#fff"/></g>
+<g class="eye"><ellipse cx="100" cy="78" rx="17" ry="19" fill="#fff"/><circle cx="103" cy="82" r="8" fill="#1f2340"/><circle cx="106" cy="77" r="2.8" fill="#fff"/></g>
+<g class="eye"><ellipse cx="130" cy="92" rx="15" ry="17" fill="#fff"/><circle cx="133" cy="95" r="7" fill="#1f2340"/><circle cx="136" cy="91" r="2.5" fill="#fff"/></g>
+<path d="M78 122 Q100 142 122 122" stroke="#1f2340" stroke-width="5" fill="none" stroke-linecap="round"/>
+<circle cx="62" cy="120" r="7" fill="#ff9fc2" opacity=".7"/><circle cx="138" cy="120" r="7" fill="#ff9fc2" opacity=".7"/>${acc(A)}</svg>`;}
+function acc(A){let s='';
+  if(A.includes('lashes'))s+='<path d="M58 72 l-6 -8 M70 70 l0 -9 M82 72 l6 -8 M118 72 l-6 -8 M130 70 l0 -9 M142 72 l6 -8" stroke="#1f2340" stroke-width="3" stroke-linecap="round"/>';
+  if(A.includes('bow'))s+='<path d="M80 50 L100 60 L80 70 Z M120 50 L100 60 L120 70 Z" fill="#ff3d8b"/><circle cx="100" cy="60" r="6" fill="#ff3d8b"/>';
+  if(A.includes('moustache'))s+='<path d="M76 116 Q88 106 100 114 Q112 106 124 116 Q112 112 100 118 Q88 112 76 116 Z" fill="'+(A.includes('white')?'#f4f4f4':'#5a3a1a')+'" stroke="#1f2340" stroke-width="1.5"/>';
+  if(A.includes('glasses'))s+='<g fill="none" stroke="#1f2340" stroke-width="4"><circle cx="70" cy="92" r="19"/><circle cx="130" cy="92" r="19"/><path d="M89 90 Q100 84 111 90"/></g>';
+  if(A.includes('tie'))s+='<path d="M82 136 L100 145 L82 154 Z M118 136 L100 145 L118 154 Z" fill="#ffc93c" stroke="#1f2340" stroke-width="2" stroke-linejoin="round"/><circle cx="100" cy="145" r="5" fill="#ffb000" stroke="#1f2340" stroke-width="2"/>';
+  if(A.includes('beard'))s+='<path d="M72 130 Q100 175 128 130 Q118 150 100 152 Q82 150 72 130 Z" fill="#f4f4f4"/>';
+  return s;}
+const PEOPLE={Zip:{s:46,c:70},Mum:{body:'#b08bff',belly:'#d9c9ff',dark:'#7a5be0',acc:'lashes bow',s:60,c:90},Dad:{body:'#4fb3f0',belly:'#a8e3ff',dark:'#2a86c4',acc:'moustache tie',s:70,c:104},
+  Pip:{body:'#ff9cc6',belly:'#ffd6e7',dark:'#e0558f',acc:'bow lashes',s:36,c:54},Grandpa:{body:'#a9b8b0',belly:'#dde6e0',dark:'#6f8a7a',acc:'glasses beard white',s:56,c:84}};
+document.querySelectorAll('.zip,.zipmini').forEach(z=>z.innerHTML=zipSVG());
+const $=id=>document.getElementById(id);
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+const esc=s=>String(s).replace(/"/g,'&quot;');
+{const s=$('stars-bg');let h='';for(let i=0;i<90;i++){h+=`<circle cx="${Math.random()*100}%" cy="${Math.random()*100}%" r="${Math.random()*1.6+.4}" fill="#fff" opacity="${Math.random()*.7+.2}"/>`;}s.innerHTML=h;}
+
+/* ---------- speech ---------- */
+let voice=null,voiceChoice='auto';
+try{voiceChoice=localStorage.getItem('zipVoice')||'auto';}catch(e){}
+function scoreVoice(v){if(!/^en/i.test(v.lang))return -1;let s=0;const n=v.name;
+  if(/natural|neural|online/i.test(n))s+=50;if(/premium|enhanced/i.test(n))s+=40;if(/google/i.test(n))s+=30;
+  if(/samantha|ava|allison|aria|jenny|serena|karen|daniel|moira|tessa|zira/i.test(n))s+=15;
+  if(/en[-_]US/i.test(v.lang))s+=6;else if(/en[-_]GB/i.test(v.lang))s+=5;
+  if(/compact|novelty|whisper|bad news|bells|boing|bubbles|cellos|zarvox|trinoids|albert|jester|organ|superstar|wobble|grandma|grandpa|rocko|shelley|flo|eddy|reed|sandy/i.test(n))s-=60;return s;}
+function voices(){try{return speechSynthesis.getVoices().filter(v=>scoreVoice(v)>=0).sort((a,b)=>scoreVoice(b)-scoreVoice(a));}catch(e){return[];}}
+function pickVoice(){const l=voices();voice=(voiceChoice!=='auto'&&l.find(v=>v.name===voiceChoice))||l[0]||null;
+  const sel=$('voiceSel');sel.innerHTML='<option value="auto">🔊 Voice: best</option>'+l.slice(0,25).map(v=>`<option value="${esc(v.name)}">${v.name}</option>`).join('');
+  sel.value=[...sel.options].some(o=>o.value===voiceChoice)?voiceChoice:'auto';}
+try{pickVoice();speechSynthesis.onvoiceschanged=pickVoice;}catch(e){}
+$('voiceSel').addEventListener('change',e=>{voiceChoice=e.target.value;try{localStorage.setItem('zipVoice',voiceChoice);}catch(_){}pickVoice();say('Hello! I am Zip.');});
+let zipMute=false;try{zipMute=localStorage.getItem('zipMute')==='1';}catch(e){}
+let lastSpeakTap=0;document.addEventListener('pointerdown',e=>{const b=e.target.closest('button');lastSpeakTap=(b&&b.textContent.includes('🔊'))?Date.now():0;},true);
+function muteDraw(){const m=document.getElementById('muteBtn');if(m){m.textContent=zipMute?'🔇 Sound: off':'🔈 Sound: on';m.classList.toggle('muted',zipMute);}}
+document.addEventListener('click',e=>{if(!e.target.closest('#muteBtn'))return;zipMute=!zipMute;try{localStorage.setItem('zipMute',zipMute?'1':'0');}catch(_){}muteDraw();if(zipMute)try{speechSynthesis.cancel();}catch(_){}});
+setTimeout(muteDraw,0);
+function say(t){if(zipMute&&Date.now()-lastSpeakTap>1500)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang=voice?voice.lang:'en-US';u.rate=.88;if(voice)u.voice=voice;speechSynthesis.speak(u);}catch(e){}}
+
+/* ---------- helpers ---------- */
+const zipLine=t=>`<div class="line"><span class="who zipw">👽 Zip</span> ${t}</div>`;
+const youLine=t=>`<div class="line"><span class="who you">🗣️ You</span> ${t}</div>`;
+function shake(el){el.classList.remove('shake');void el.offsetWidth;el.classList.add('shake');}
+function confetti(){const cols=['#ffc93c','#5fd38d','#ff6fa5','#5ec8ff','#8b7bff'];
+  for(let i=0;i<80;i++){const c=document.createElement('div');c.className='confetti';c.style.left=Math.random()*100+'vw';c.style.background=cols[i%5];
+    c.style.animationDuration=(1.8+Math.random()*1.8)+'s';c.style.animationDelay=(Math.random()*.6)+'s';c.style.borderRadius=Math.random()<.5?'50%':'2px';
+    document.body.appendChild(c);setTimeout(()=>c.remove(),4500);}}
+function starFly(el){const tg=document.querySelector('.screen.active [data-lvstar]')||document.querySelector('.screen.active .gstars');const t=tg.getBoundingClientRect();setTimeout(()=>{tg.classList.remove('bump');void tg.offsetWidth;tg.classList.add('bump');},800);const r=el?el.getBoundingClientRect():{left:innerWidth/2,top:innerHeight/2,width:0,height:0};
+  const s=document.createElement('div');s.className='starfly';s.textContent='⭐';const x=r.left+r.width/2-16,y=r.top+r.height/2-16;
+  s.style.left=x+'px';s.style.top=y+'px';s.style.setProperty('--dx',(t.left-x)+'px');s.style.setProperty('--dy',(t.top-y)+'px');document.body.appendChild(s);setTimeout(()=>s.remove(),1200);}
+const store={get(k){try{return JSON.parse(localStorage.getItem('zip2:'+k));}catch(e){return null;}},set(k,v){try{localStorage.setItem('zip2:'+k,JSON.stringify(v));}catch(e){}}};
+
+
+}
+</script>
+</body>
+</html>

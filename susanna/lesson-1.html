@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zip goes to Earth school</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+/* VOICE: playful space mission for a 9-year-old agent
+   IDEA: Zip's mission control — each task is a mission with a timer
+   PICTURE: Zip himself, plus pictures the child drags and flips on iPad
+   COLOUR and TYPE: course colours — night blue, Zip green, sun yellow, pink; Baloo 2 + Nunito
+   LAYOUT: one mission per screen, white card on the starry sky, big touch targets */
+:root{--bg1:#1b1f4b;--bg2:#2b2f78;--card:#fff;--ink:#1f2340;--muted:#6b7090;--zip:#5fd38d;--zipdark:#2fa866;--sun:#ffc93c;--pink:#ff6fa5;--sky:#5ec8ff;--violet:#8b7bff;--ok:#1f9d63;--bad:#ff5a5f;--radius:22px;color-scheme:light}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0;min-height:100%}
+body{font-family:"Nunito",system-ui,sans-serif;color:var(--ink);background:radial-gradient(1200px 700px at 80% -10%,#3b3fa0 0%,transparent 60%),linear-gradient(180deg,var(--bg1),var(--bg2));background-attachment:fixed;min-height:100vh;overflow-x:clip;-webkit-tap-highlight-color:transparent}
+button{touch-action:manipulation;font-family:inherit;color:var(--ink);-webkit-appearance:none;appearance:none}
+#stars-bg{position:fixed;inset:0;pointer-events:none;z-index:0;width:100%;height:100%}
+.wrap{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:14px 16px 90px}
+h1,h2,h3{font-family:"Baloo 2","Nunito",sans-serif;margin:0}
+.topbar{display:flex;align-items:center;gap:10px;color:#fff;margin-bottom:12px;flex-wrap:wrap}
+.brand{font:800 21px "Baloo 2",sans-serif;display:flex;align-items:center;gap:8px}
+.dots{display:flex;gap:7px;flex:1;justify-content:center}
+.dot{width:14px;height:14px;border-radius:50%;background:rgba(255,255,255,.25);border:0;padding:0;cursor:pointer}
+.dot.on{background:var(--sun);transform:scale(1.25)}.dot.done{background:var(--zip)}
+.starcount{background:rgba(255,255,255,.14);padding:6px 14px;border-radius:999px;font-weight:800;font-size:18px}
+.toggle{background:rgba(255,255,255,.14);color:#fff;border:0;padding:8px 12px;border-radius:999px;font:700 13px "Nunito",sans-serif;cursor:pointer;min-height:36px}
+select.toggle option{color:#1f2340}.toggle.on{background:var(--sun);color:var(--ink)}
+.screen{display:none;animation:pop .45s ease}.screen.active{display:block}
+@keyframes pop{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.card{background:var(--card);border-radius:var(--radius);padding:20px;box-shadow:0 18px 50px rgba(0,0,0,.25)}
+.tag{display:inline-block;background:var(--violet);color:#fff;font:800 14px "Baloo 2",sans-serif;padding:4px 14px;border-radius:999px;margin-bottom:6px}
+.title{font-size:34px;line-height:1.1;margin-bottom:6px}
+.sub{font:800 22px "Baloo 2",sans-serif;margin:20px 0 6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+/* task line: English + RU on demand */
+.goal{color:var(--ink);background:#fff6d9;border:3px solid #ffe08a;border-radius:16px;padding:10px 14px;margin:6px 0 12px;font-size:19px;font-weight:800;line-height:1.4;position:relative}
+.goal{padding-left:52px!important}
+.goal::before{content:"🎯";position:absolute;left:14px;top:9px;font-size:26px;line-height:1}
+.goal .en{padding-right:70px}
+.helpbox .qwords{padding-right:60px}
+.mist{background:#f6f3ff;border-radius:18px;padding:12px}
+.mpic{font-size:64px;text-align:center;line-height:1.1}
+.daypics{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.daypics button{border:3px solid #e3e7fb;background:#fff;border-radius:16px;padding:8px 6px;font:800 17px "Nunito",sans-serif;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;min-height:110px;justify-content:center}
+.daypics .emo{font-size:40px}
+@media (max-width:600px){.daypics{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.ipa{font-family:"Nunito",sans-serif;font-weight:800;background:#fff;border:2px solid #cfd5f5;border-radius:8px;padding:0 6px;white-space:nowrap}
+.hwtabs{display:flex;gap:8px;margin:6px 0 4px}
+.hwtab{border:0;border-radius:14px;padding:8px 18px;font:800 20px "Baloo 2",sans-serif;background:#eef1ff;box-shadow:0 4px 0 #c9cff0;cursor:pointer;min-height:48px}
+.hwtab.on{background:var(--violet);color:#fff;box-shadow:0 4px 0 #5b47e0}
+.hwp{display:none}.hwp.on{display:block;animation:pop .35s ease}
+
+.hw{color:var(--ink);background:#f6f3ff;border:3px solid #e2dcff;border-radius:18px;padding:14px 16px;margin:6px 0 10px;position:relative;font-size:19px;font-weight:800;line-height:1.45}
+.hw .hl,.hw .hwl{padding-right:64px}
+.hw .hl.task{background:#fff6d9;border:3px solid #ffe08a;border-radius:14px;padding:8px 64px 8px 48px;position:relative}
+.hw>.rubtn{z-index:3;top:14px;right:14px}
+.hw .hl.task::before{content:"🎯";position:absolute;left:12px;top:7px;font-size:24px}.hw .hl{margin:4px 0}
+.hw .rutx{border:0;padding:0;margin:2px 0 6px;color:#5b47a0}
+.hw.open .rutx{display:block}
+.hwl{margin:6px 0 8px;padding-left:28px}.hwl li{margin:6px 0}
+.qin{display:flex;gap:8px;align-items:center;margin:4px 0 10px;padding-right:64px}.qin input{flex:1}
+input.name{font:800 21px "Baloo 2",sans-serif;padding:10px 14px;border:3px solid #e3e7fb;border-radius:14px;outline:none;color:var(--ink);background:#fff;min-height:52px}input.name:focus{border-color:var(--violet)}
+.blank{display:inline-block;min-width:60px;border-bottom:3px solid #8b7bff;text-align:center}
+.hl.ex{background:#fff;border-radius:12px;padding:8px 10px;font-size:17px}
+.hwwords{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.hwwords .chip{font-size:20px}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0;text-align:center}
+.cols>div{background:#fff;border:3px dashed #cfd5f5;border-radius:14px;padding:10px;font-size:18px}
+
+.rubtn{position:absolute;top:8px;right:8px;border:0;background:#fff;border-radius:10px;font:800 14px "Nunito",sans-serif;padding:6px 10px;cursor:pointer;box-shadow:0 2px 0 #e0c266;min-height:34px}
+.rutx{display:none;font-size:16px;font-weight:700;color:#5b4a12;margin-top:8px;padding-top:8px;border-top:2px dashed #ffe08a}
+.goal.open .rutx,body.ru-all .rutx{display:block}
+.helpbox{color:var(--ink);display:none;background:#eef7ff;border:3px solid #cfe6ff;border-radius:18px;padding:14px 16px;margin:8px 0 12px;position:relative}
+.helpbox.show{display:block}
+.helpbox .rubtn{box-shadow:0 2px 0 #9ed5f1}
+.helpbox .rutx{color:#24507a;border-top-color:#cfe6ff}
+.helpbox.open .rutx{display:block}
+.helpbox .rutop{border-top:0;border-bottom:2px dashed #cfe6ff;margin:0 60px 10px 0;padding:0 0 10px}
+.trn{font:700 15px "Nunito",sans-serif;color:var(--muted)}
+.rrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font:800 21px "Baloo 2",sans-serif;margin:6px 0;padding-right:60px}
+.pill{background:#fff;border-radius:12px;padding:2px 12px;border:3px solid #cfe6ff}
+.pill.a{background:#ffe1ec;border-color:#f3a9c3}.pill.an{background:#dcfbe9;border-color:#9fe3bf}
+.x{color:#d6455b;text-decoration:line-through}.v{color:var(--ok)}
+.zipbox{display:flex;gap:14px;align-items:flex-end;margin:8px 0 14px}
+.zipbox .zip{width:110px;flex:0 0 auto}
+.bubble{position:relative;background:#f1f6ff;border:3px solid #dbe6ff;border-radius:20px;padding:14px 16px;font-size:20px;font-weight:800;flex:1;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.bubble:before{content:"";position:absolute;left:-14px;bottom:18px;border:10px solid transparent;border-right-color:#dbe6ff}
+.say{border:0;background:var(--sky);color:#fff;border-radius:50%;width:42px;height:42px;font-size:18px;cursor:pointer;box-shadow:0 3px 0 #2c9bd6;flex:none}
+.say:active{transform:translateY(2px);box-shadow:none}
+.btn{border:0;cursor:pointer;font:800 20px "Baloo 2",sans-serif;padding:12px 24px;border-radius:16px;background:var(--sun);color:var(--ink);box-shadow:0 5px 0 #d9a21a;min-height:50px}
+.btn:active{transform:translateY(3px);box-shadow:0 2px 0 #d9a21a}
+.btn.green{background:var(--zip);box-shadow:0 5px 0 var(--zipdark);color:#fff}
+.btn.pink{background:var(--pink);box-shadow:0 5px 0 #d94784;color:#fff}
+.btn.light{background:#eef1ff;box-shadow:0 5px 0 #c9cff0}
+.btn.blue{background:#dff4ff;box-shadow:0 5px 0 #9ed5f1}
+.btn.small{font-size:17px;padding:8px 16px;min-height:44px}
+.nav{display:flex;justify-content:space-between;align-items:center;margin-top:20px;gap:10px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.chip{border:3px solid #e3e7fb;background:#fff;border-radius:14px;padding:8px 14px;font:800 18px "Nunito",sans-serif;cursor:pointer;display:flex;align-items:center;gap:6px;min-height:46px}
+.chip.sel{background:var(--violet);border-color:var(--violet);color:#fff}
+/* talk panel: who says what */
+.talk{color:var(--ink);background:#effcf6;border:3px solid #bfeed3;border-radius:18px;padding:12px 16px;margin-top:12px;min-height:64px;display:grid;gap:8px}
+.line{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font:800 21px "Baloo 2",sans-serif}
+.who{font:800 14px "Nunito",sans-serif;border-radius:999px;padding:3px 10px;flex:none}
+.who.zipw{background:#dcfbe9;color:#17734a}.who.you{background:#ffe1ec;color:#a3285a}
+.ok{color:var(--ok)}.no{color:#d6455b}
+.art{font:800 24px "Baloo 2",sans-serif;border:0;border-radius:14px;padding:6px 22px;background:#fff;box-shadow:0 4px 0 #e0c266;cursor:pointer;min-height:48px}
+/* drag cards */
+.pool{display:flex;flex-wrap:wrap;gap:10px;min-height:96px;padding:10px;border-radius:18px;background:#f6f3ff;margin:6px 0 12px;justify-content:center}
+.dcard{touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;background:#fff;border:3px solid #e3e7fb;border-radius:16px;padding:6px 10px;font:800 17px "Nunito",sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:88px;min-height:84px;cursor:grab;box-shadow:0 4px 0 #dfe3f7;text-align:center}
+.dcard .emo{font-size:40px;line-height:1.1}
+.dcard.lifted{opacity:.3}
+.dcard.lock{cursor:default;box-shadow:none;border-color:#bfeed3;background:#effcf4}
+.dragghost{position:fixed;z-index:200;pointer-events:none;transform:scale(1.1) rotate(-4deg);box-shadow:0 14px 30px rgba(0,0,0,.3)!important;opacity:.97;margin:0}
+.zones{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.zone{border:4px dashed #cfd5f5;border-radius:20px;min-height:150px;padding:10px;background:#f9faff;transition:.15s}
+.zone.hover{border-color:var(--violet);background:#efeaff}
+.zone h3{font-size:21px;text-align:center;margin-bottom:6px}
+.zbody{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.shake{animation:shake .45s}
+@keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+/* flips */
+.flips{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:10px}
+.flip{perspective:900px;height:186px;cursor:pointer}
+.flip-in{position:relative;width:100%;height:100%;transition:transform .6s;transform-style:preserve-3d}
+.flip.open .flip-in{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;-webkit-backface-visibility:hidden;backface-visibility:hidden;border-radius:18px;padding:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font:800 18px "Baloo 2",sans-serif}
+.front{background:linear-gradient(135deg,#8b7bff,#5ec8ff);color:#fff}
+.front .emo{font-size:42px}.front .kw{font-size:19px;line-height:1.15}.front .gap{display:inline-block;min-width:34px;border-bottom:3px solid #fff;margin:0 3px}
+.back{background:#e9fff2;border:3px solid var(--zip);transform:rotateY(180deg);color:var(--ink);font-size:16px;gap:4px;line-height:1.25}
+.back .q2{color:var(--violet);font-size:17px}
+.back .tr{font:700 15px "Nunito",sans-serif;color:var(--muted)}
+.hintbtn{margin-top:6px;border:0;background:rgba(255,255,255,.3);color:#fff;border-radius:10px;font:800 15px "Nunito",sans-serif;padding:6px 12px;cursor:pointer;min-height:36px}
+.hinttxt{font-size:15px;margin-top:4px;background:rgba(0,0,0,.2);border-radius:8px;padding:2px 8px;display:none}
+.flip.hint .hinttxt{display:block}
+/* question lab */
+.qwords{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin:6px 0 10px}
+.qw{background:#fff;border:3px solid #cfe6ff;border-radius:14px;padding:8px 10px;font:800 20px "Baloo 2",sans-serif;display:flex;flex-direction:column}
+.qw small{font:700 14px "Nunito",sans-serif;color:var(--muted)}
+.lab{background:#f6f3ff;border-radius:18px;padding:14px;margin-top:8px}
+.labline{display:flex;flex-wrap:wrap;gap:8px;min-height:62px;align-items:center;background:#fff;border:3px dashed #cfd5f5;border-radius:14px;padding:8px;margin:8px 0}
+.labline.good{border-style:solid;border-color:var(--ok);background:#effcf4}
+.tiles{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;min-height:56px}
+.tile{font:800 22px "Baloo 2",sans-serif;border:0;border-radius:12px;padding:6px 16px;background:var(--sun);box-shadow:0 4px 0 #d9a21a;cursor:pointer;min-height:48px}
+.labline .tile{background:#dff4ff;box-shadow:0 4px 0 #9ed5f1}
+.qm{font:800 28px "Baloo 2",sans-serif;color:var(--muted)}
+/* sounds + numbers */
+.ears{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:center;margin-top:8px}
+.big{font:800 26px "Baloo 2",sans-serif;padding:14px 24px;border-radius:18px;border:0;cursor:pointer;min-height:60px;color:var(--ink)}
+.short{background:#ffe1ec;box-shadow:0 5px 0 #f3a9c3}.long{background:#dff4ff;box-shadow:0 5px 0 #9ed5f1}
+.count{display:grid;gap:6px;justify-content:center;padding:12px;background:#f6f3ff;border-radius:18px}
+.count .r5{display:flex;gap:8px;font-size:34px;line-height:1}
+.opts{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+.opt{font:800 26px "Baloo 2",sans-serif;border:3px solid #e3e7fb;background:#fff;color:var(--ink);border-radius:16px;min-width:130px;min-height:64px;cursor:pointer;padding:4px 14px;display:flex;flex-direction:column;align-items:center;line-height:1.05}
+.opt small{font:700 15px "Nunito",sans-serif}
+.opt.right{background:#dcfbe9;border-color:var(--ok)}.opt.wrong{background:#ffe3e3;border-color:#f3a9a9}
+.teen{color:#2c9bd6;text-decoration:underline wavy}
+/* day */
+.slots{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.slot{min-height:150px;display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px 4px}
+.slot .n{font:800 24px "Baloo 2",sans-serif;background:var(--sun);border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center}
+.slot.bad{border-color:var(--bad);background:#fff0f0}.slot.good{border-color:var(--ok);border-style:solid;background:#effcf4}
+.qlist{display:grid;gap:8px;margin-top:8px}
+.qline{display:flex;align-items:center;gap:8px;background:#f5f6ff;border-radius:14px;padding:8px 12px;font:800 20px "Baloo 2",sans-serif}
+.qline span{flex:1}
+/* final */
+.badge{width:220px;height:220px;margin:0 auto;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff3b8,#ffc93c 55%,#f0a500);display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 0 0 10px #fff,0 0 0 18px #ffc93c,0 20px 50px rgba(0,0,0,.35);text-align:center;font-family:"Baloo 2",sans-serif}
+.badge .b1{font-size:15px;font-weight:800;color:#8a5a00;letter-spacing:1px}.badge .b2{font-size:30px;font-weight:800;color:#5a3a00;line-height:1}.badge .b3{font-size:42px}
+.cans{display:flex;flex-direction:column;gap:8px;max-width:520px;margin:14px auto}
+.can{border:3px solid #e3e7fb;background:#fff;border-radius:14px;padding:10px 14px;font:800 20px "Baloo 2",sans-serif;cursor:pointer;text-align:left;min-height:50px}
+.can.sel{background:#dcfbe9;border-color:var(--ok)}
+.secret{background:linear-gradient(135deg,#1b1f4b,#3b3fa0);color:#fff;border-radius:20px;padding:18px 20px;margin-top:18px;text-align:left}
+.secret h3{font-size:26px;margin-bottom:6px}.secret ol{font-size:19px;font-weight:700;line-height:1.5;margin:6px 0 10px;padding-left:24px}
+.mom{display:none;background:#fff;color:var(--ink);border-radius:14px;padding:12px 14px;font-size:16px;line-height:1.5;white-space:pre-wrap;margin-top:10px;user-select:text;-webkit-user-select:text}
+.mom.show{display:block}
+.start-hero{text-align:center;color:#fff;padding:16px 0}
+.start-hero .zip{width:280px;max-width:62vw;margin:0 auto;display:block;animation:float 3s ease-in-out infinite}
+@keyframes float{50%{transform:translateY(-12px)}}
+.start-hero h1{font-size:46px;line-height:1.05;margin:6px 0}
+.start-hero .bubble{max-width:620px;margin:10px auto;color:var(--ink);text-align:left}
+.start-hero .bubble:before{display:none}
+.zip-wave .arm-r{transform-origin:150px 120px;animation:wave 1s ease-in-out infinite}
+@keyframes wave{50%{transform:rotate(-25deg)}}
+.blink .eye{animation:blink 4s infinite}
+@keyframes blink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
+.eye{transform-box:fill-box;transform-origin:center}
+.confetti{position:fixed;top:-20px;width:10px;height:16px;z-index:150;pointer-events:none;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+.starfly{position:fixed;z-index:160;font-size:34px;pointer-events:none;animation:starfly 1s ease forwards}
+@keyframes starfly{0%{transform:scale(.4);opacity:0}30%{transform:scale(1.4);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(.5);opacity:0}}
+#tmr{position:fixed;right:12px;bottom:12px;z-index:120;display:flex;align-items:center;gap:8px;background:rgba(20,22,60,.85);border-radius:999px;padding:5px 14px 5px 5px;color:#fff;font:700 14px "Nunito",sans-serif;cursor:pointer;user-select:none}
+#tmr svg{width:38px;height:38px;transform:rotate(-90deg)}
+#tmr .bg{fill:none;stroke:rgba(255,255,255,.2);stroke-width:4}
+#tmr .fg{fill:none;stroke-width:4;stroke-linecap:round;transition:stroke .4s}
+#tmr .t2{opacity:.75;font-weight:600;font-size:12px}
+#tmr.over{animation:tpulse 1s infinite}@keyframes tpulse{50%{box-shadow:0 0 0 6px rgba(255,77,109,.5)}}
+@media (max-width:760px){
+  .flips{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .slots{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .title{font-size:28px}.start-hero h1{font-size:38px}
+  .zipbox .zip{width:80px}.bubble{font-size:18px}
+}
+@media (max-width:480px){.zones{grid-template-columns:1fr}.slots{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+#muteBtn.muted{background:#ffc93c;color:#1f2340}
+</style>
+</head>
+<body>
+<svg id="stars-bg"></svg>
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand"><span id="brandZip" style="width:34px;display:inline-block"></span> Mission: Help Zip!</div>
+    <div class="dots" id="dots"></div>
+    <select class="toggle" id="voiceSel" title="Voice" style="max-width:170px"></select>
+    <button class="toggle" id="muteBtn" title="Zip talks by himself">🔈 Sound: on</button>
+    <button class="toggle on" data-go="7">🕵️ Homework</button>
+    <a class="toggle on" href="words.html" style="text-decoration:none;display:inline-flex;align-items:center">🃏 Words</a>
+    <button class="toggle" id="ruToggle">RU: all</button>
+    <div class="starcount">⭐ <span id="stars">0</span></div>
+  </div>
+
+  <!-- 0 START -->
+  <section class="screen active" data-step="0">
+    <div class="start-hero">
+      <div class="zip zip-wave blink"></div>
+      <h1>Zip goes to Earth school!</h1>
+      <div class="bubble">Hello, Agent Susanna! Let's start our mission! <button class="say" data-say="Hello, Agent Susanna! Let's start our mission!">🔊</button></div>
+      <div class="goal" style="max-width:620px;margin:10px auto;text-align:left"><div class="en">Say: “Hello, Zip!”</div><button class="rubtn">RU ▾</button>
+        <div class="rutx">Ответь Зипу: «Hello, Zip!» Сегодня Зип идёт в земную школу. Помоги ему подготовиться!</div></div>
+      <div class="nav" style="justify-content:flex-end;max-width:620px;margin:16px auto 0"><button class="btn green" data-go="1">Start ▶</button></div>
+    </div>
+  </section>
+
+  <!-- 1 SHOW ME -->
+  <section class="screen" data-step="1">
+    <div class="card">
+      <span class="tag">WARM-UP</span>
+      <h2 class="title">Show me!</h2>
+      <div class="goal"><div class="en">Show Zip 2 or 3 things from your school bag. Zip asks: “Is it…?” Answer him!</div><button class="rubtn">RU ▾</button>
+        <div class="rutx">Покажи в камеру 2–3 вещи из своего портфеля. Зип будет спрашивать «Is it…?» и ошибаться. Поправь его!</div></div>
+      <div class="zipbox">
+        <div class="zip blink"></div>
+        <div class="bubble"><span id="guess">Agent, show me your school bag! What's this?</span> <button class="say" id="guessSay">🔊</button></div>
+      </div>
+      <div style="text-align:center"><button class="btn pink" id="guessBtn">🤔 Zip asks</button></div>
+      <div class="talk"><div class="line"><span class="who you">🗣️ You</span> No! It's a ______ . It's ______ .</div>
+        <div class="line" style="font-size:17px;color:var(--muted)">No! It's a ruler. It's blue.</div></div>
+      <div class="nav"><button class="btn light" data-go="0">◀ Back</button><button class="btn green" data-go="2">Mission 1 ▶</button></div>
+    </div>
+  </section>
+
+  <!-- 2 MISSION 1 -->
+  <section class="screen" data-step="2">
+    <div class="card">
+      <span class="tag">MISSION 1</span>
+      <h2 class="title">Zip's School Bag</h2>
+      <div class="zipbox"><div class="zip blink" style="width:90px"></div><div class="bubble" style="font-size:19px">I'm going to Earth school today! What can I take in my bag? Help me, Agent! <button class="say" data-say="I'm going to Earth school today! What can I take in my bag? Help me, Agent!">🔊</button></div></div>
+      <div class="goal"><div class="en">Put the things in the right box: in Zip's bag or not? For the bag, choose <b>a</b> or <b>an</b>. Then say it: “It's an apple.”</div><button class="rubtn">RU ▾</button>
+        <div class="rutx">Перетащи каждую вещь в нужную коробку: в портфель Зипа или нет? Если вещь идёт в портфель, выбери a или an. Потом скажи фразу вслух: «It's an apple». Нажми на картинку — услышишь слово. Не знаешь, что выбрать, — нажми «💡 a or an?».</div></div>
+      <div style="margin-bottom:6px"><button class="btn small blue" data-help="helpArt">💡 a or an?</button></div>
+      <div class="helpbox" id="helpArt"><button class="rubtn">RU ▾</button>
+        <div class="rutx rutop">a и an значат «один, какой-то». <b>an</b> ставим, если слово начинается с гласного звука: a, e, i, o, u (an apple, an egg, an orange). Так проще сказать: «эн-эпл». Перед остальными словами — <b>a</b>: a ruler, a pen, a book.</div>
+        <div class="rrow"><span class="pill a">a</span> 📏 ruler · ✏️ pencil · 📕 book</div>
+        <div class="rrow"><span class="pill an">an</span> 🍎 apple · 🥚 egg · 🍊 orange</div>
+        <div class="rrow" style="font-size:18px">an + <b>a, e, i, o, u</b>: <span class="v">an apple</span> <span class="x">a apple</span></div>
+        
+      </div>
+      <div class="pool" id="bagPool"></div>
+      <div class="zones">
+        <div class="zone" data-z="in"><h3>🎒 In Zip's bag</h3><div class="zbody"></div></div>
+        <div class="zone" data-z="out"><h3>🚫 Not in the bag!</h3><div class="zbody"></div></div>
+      </div>
+      <div class="talk" id="artBox"><div class="line"><span class="who zipw">👽 Zip</span> What's in my bag? Help me, Agent!</div></div>
+      <div class="nav"><button class="btn light" data-go="1">◀ Back</button><button class="btn green" data-finish="1" data-next="3">⭐ Mission 2 ▶</button></div>
+    </div>
+  </section>
+
+  <!-- 3 MISSION 2 -->
+  <section class="screen" data-step="3">
+    <div class="card">
+      <span class="tag">MISSION 2</span>
+      <h2 class="title">Zip's Ears</h2>
+      <div class="zipbox"><div class="zip blink" style="width:90px"></div><div class="bubble" style="font-size:19px">Help! I say “I've got a sheep 🐑” — but I've got a ship 🚢! Earth words are hard! <button class="say" data-say="Help! I say: I've got a sheep. But I've got a ship! Earth words are hard!">🔊</button></div></div>
+      <div style="margin-bottom:6px"><button class="btn small blue" data-help="helpSnd">💡 Short or long?</button></div>
+      <div class="helpbox" id="helpSnd"><button class="rubtn">RU ▾</button>
+        <div class="rutx rutop">[ɪ] — короткое «и», [iː] — долгое «ии» (двоеточие значит «тянем»). Это звук «и», а не буква i, которую в алфавите называют «ай». Короткий звук быстрый, рука стоит на месте: ship, it. Долгий звук тянем «иии», улыбаемся, рука растягивается в сторону: sheep, eat. Буквы ee и ea обычно читаются долго. Это важно: ship — корабль, а sheep — овца. Скажешь не так — получится другое слово!</div>
+        <div class="rrow"><span class="pill a">✋ short [ɪ]</span> 🚢 sh<u>i</u>p · 👉 <u>i</u>t</div>
+        <div class="rrow"><span class="pill an">↔️ long [iː]</span> 🐑 sh<u>ee</u>p · 😋 <u>ea</u>t — smile!</div>
+        <div class="rrow" style="font-size:18px"><b>ee</b>, <b>ea</b> → long</div>
+        
+      </div>
+
+      <div class="sub">1. Listen and choose!</div>
+      <div class="goal"><div class="en">Tap “🔊 Zip says” and listen. Is it short <span class="ipa">[ɪ]</span> like in ship 🚢 or long <span class="ipa">[iː]</span> like in sheep 🐑? Tap ✋ or ↔️. Then say the word!</div><button class="rubtn">RU ▾</button>
+        <div class="rutx">Нажми «🔊 Zip says»: Зип скажет одно слово. Слушай звук «и». Короткий [ɪ], как в ship, — нажми ✋ short. Долгий [iː], как в sheep, — нажми ↔️ long. Потом повтори слово вслух.</div></div>
+      <div class="ears">
+        <button class="btn pink" id="earBtn">🔊 Zip says</button>
+        <button class="big short" data-ear="0">✋ short — sh<u>i</u>p</button>
+        <button class="big long" data-ear="1">↔️ long — sh<u>ee</u>p</button>
+      </div>
+      <div class="talk" id="earRes"><div class="line"><span class="who zipw">👽 Zip</span> Listen! 👂</div></div>
+
+      <div class="sub">2. Zip makes mistakes!</div>
+      <div class="goal"><div class="en">Zip says the wrong word! Look at the picture and listen. Say the right sentence. Then tap “✓ Show me”.</div><button class="rubtn">RU ▾</button>
+        <div class="rutx">Зип опять перепутал слова! Посмотри на картинку и послушай Зипа. Скажи вслух правильную фразу. Потом нажми «✓ Show me» и проверь себя.</div></div>
+      <div class="mist">
+        <div class="mpic" id="mPic"></div>
+        <div class="talk" id="mBox"></div>
+        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:10px"><button class="btn green small" id="mShow">✓ Show me</button><button class="btn light small" id="mMore">More ▶</button></div>
+      </div>
+
+      <div class="sub">3. Say it! <button class="say" data-say="A sheep on a ship!">🔊</button></div>
+      <div class="goal"><div class="en">🐑🚢 “A sheep on a ship!” Listen 🔊. Then say it: one, two, three!</div><button class="rubtn">RU ▾</button>
+        <div class="rutx">Скороговорка «Овца на корабле». Послушай и скажи её три раза: в sheep тянем долго, в ship — коротко.</div></div>
+      <div class="nav"><button class="btn light" data-go="2">◀ Back</button><button class="btn green" data-finish="2" data-next="4">⭐ Mission 3 ▶</button></div>
+    </div>
+  </section>
+
+  <!-- 4 MISSION 3 -->
+  <section class="screen" data-step="4">
+    <div class="card">
+      <span class="tag">MISSION 3</span>
+      <h2 class="title">Questions for Zip</h2>
+      <div class="sub">1. How do we ask?</div>
+      <div class="goal"><div class="en">Read with your teacher: how do we ask a question?</div><button class="rubtn">RU ▾</button>
+        <div class="rutx">Прочитай вместе с преподавателем, как задать вопрос по-английски. Нажми «RU ▾» в правиле, чтобы прочитать объяснение по-русски.</div></div>
+      <div class="helpbox show" id="helpQ"><button class="rubtn">RU ▾</button>
+        <div class="rutx rutop"><b>Главное правило:</b> в английском вопросе нельзя просто поднять голос, как в русском («У тебя есть питомец?»). В начало обязательно ставится маленькое слово, потом you, потом всё остальное.<br><br>
+<b>Какое маленькое слово выбрать?</b><br>
+• Если в предложении есть <b>is</b> (есть, находится) — его ставим вперёд: Is your school big? — Твоя школа большая?<br>
+• Если в предложении есть <b>can</b> (могу, умею) — его и ставим вперёд: Can you swim?<br>
+• Если есть <b>have got</b> (у меня есть) — вперёд идёт have, а got остаётся на месте: Have you got a bike? Отвечаем коротко, без got: Yes, I have.<br>
+• Если в предложении просто действие (like — нравится, go — идти, ехать, play — играть, live — жить), своего маленького слова нет. Тогда берём помощника <b>do</b>. Do само не переводится, оно только показывает, что это вопрос: Do you like apples? — Тебе нравятся яблоки?<br>
+• <b>Would you like…?</b> = «хочешь…?», вежливо. Would отдельно не переводится, запоминаем всю фразу целиком.<br><br>
+<b>have got и have.</b> «I have got a pet» и «I have a pet» значат одно и то же: «у меня есть питомец». Got ничего не добавляет к смыслу, так часто говорят в Британии. Но от этого зависит вопрос: с got — Have you got a pet?, без got — Do you have a pet? Оба правильные. А «You have a pet?» без маленького слова — ошибка.<br><br>
+<b>Если есть вопросительное слово</b> (where, how many, why, how), оно идёт самым первым, а за ним — маленькое слово: Where is…? Why do you…? How many … have you got?</div>
+        <div class="qwords">
+          <div class="qw">📍 Where? <small>где?</small></div>
+          <div class="qw">🔢 How many? <small>сколько?</small></div>
+          <div class="qw">🚌 How? <small>как?</small></div>
+          <div class="qw">❤️ Why? <small>почему? → Because…</small></div>
+          <div class="qw">❓ What? <small>что? какой?</small></div>
+        </div>
+        <div class="rrow"><span class="pill">is</span> <small class="trn">есть, находится</small></div>
+        <div class="rrow" style="font-size:19px">My school is big. → <b>Is</b> your school big? → Yes, it is. / No, it isn't.</div>
+        <div class="rrow"><span class="pill">can</span> <small class="trn">могу, умею</small></div>
+        <div class="rrow" style="font-size:19px">I can fly. → <b>Can</b> you fly? → Yes, I can. / No, I can't.</div>
+        <div class="rrow"><span class="pill">have got</span> <small class="trn">у меня есть</small></div>
+        <div class="rrow" style="font-size:19px">I have got a pet. → <b>Have</b> you got a pet? → Yes, I have. / No, I haven't.</div>
+        <div class="rrow"><span class="pill">do</span> <small class="trn">для действий: like, go, play, live</small></div>
+        <div class="rrow" style="font-size:19px">I like apples. → <b>Do</b> you like apples? → Yes, I do. / No, I don't.</div>
+        <div class="rrow"><span class="pill">Would you like…?</span> <small class="trn">хочешь…? (вежливо)</small></div>
+        <div class="rrow" style="font-size:19px">Would you like an apple? → Yes, please! / No, thank you.</div>
+        <div class="rrow" style="font-size:19px">📍 Where <b>is</b> your school? · 🔢 How many teachers <b>have</b> you <b>got</b>? · ❤️ Why <b>do</b> you like…?</div>
+        <div class="rrow" style="font-size:19px"><span class="x">You have a pet?</span> <span class="v">✔ Have you got a pet?</span></div>
+        
+      </div>
+      <div class="sub">2. Interview Zip <button class="say" data-say="Ask me about my school on Blip! Choose a picture, ask, then open it.">🔊</button></div>
+      <div class="goal"><div class="en">Say the question. Which small words are missing? Then open the picture!</div><button class="rubtn">RU ▾</button>
+        <div class="rutx">На карточке вопрос с пропусками. Скажи его целиком вслух и вставь маленькие слова: is, have, got, can, do, would. Потом нажми на карточку — Зип ответит. Застряла — нажми 💡: первый раз появится перевод вопроса, второй раз — весь вопрос по-английски.</div></div>
+      <div class="flips" id="flips"></div>
+      <div style="text-align:center;margin-top:16px"><button class="btn pink" id="swapBtn">🔄 Now Zip asks YOU</button></div>
+      <div id="swap" style="display:none">
+        <div class="zipbox"><div class="zip blink" style="width:80px"></div><div class="bubble" style="font-size:18px">Now I ask you! Answer and tell me more. <button class="say" data-say="Now I ask you! Answer and tell me more.">🔊</button></div></div>
+        <div class="goal"><div class="en">Zip asks you. Tap 🔊 and listen. Answer and tell him more: answer + one more sentence + because…</div><button class="rubtn">RU ▾</button>
+          <div class="rutx">Теперь Зип спрашивает тебя. Нажми 🔊 и послушай вопрос. Ответь и расскажи больше: ответ + ещё одно предложение + почему (because…).</div></div>
+        <div class="qlist" id="zq"></div>
+        <div class="talk"><div class="line" style="font-size:19px">✅ answer + ➕ one more sentence + ❤️ because…</div>
+          <div class="line" style="font-size:17px;color:var(--muted)">My school is in Moscow. It's big. I like it because my friends are there.</div></div>
+      </div>
+      <div class="nav"><button class="btn light" data-go="3">◀ Back</button><button class="btn green" data-finish="3" data-next="5">⭐ Mission 4 ▶</button></div>
+    </div>
+  </section>
+
+  <!-- 5 MISSION 4 -->
+  <section class="screen" data-step="5">
+    <div class="card">
+      <span class="tag">MISSION 4</span>
+      <h2 class="title">Zip's Day</h2>
+      <div class="zipbox"><div class="zip blink" style="width:90px"></div><div class="bubble" style="font-size:19px">What do Earth kids do every day? Tell me about your day, Agent! <button class="say" data-say="What do Earth kids do every day? Tell me about your day, Agent!">🔊</button></div></div>
+      <div class="sub">1. My day</div>
+      <div class="goal"><div class="en">Look at the pictures. Tell Zip about your day: “I get up. Then I go to school…”</div><button class="rubtn">RU ▾</button>
+        <div class="rutx">Посмотри на картинки и расскажи Зипу про свой день по порядку: «I get up. Then I go to school…». Нажми на картинку — услышишь слова. Рассказывай про себя: что ты делаешь на самом деле. Можно послушать пример — кнопка «🔊 Listen».</div></div>
+      <div class="daypics" id="dayPics"></div>
+      <div style="text-align:center;margin-top:10px"><button class="btn small blue" data-say="I get up. Then I go to school. I play in the playground. Then I do my homework. I go to bed.">🔊 Listen</button></div>
+      <div class="sub">2. Zip asks</div>
+      <div class="goal"><div class="en">Tap 🔊 and listen to Zip's question. Answer him!</div><button class="rubtn">RU ▾</button>
+        <div class="rutx">Нажми 🔊 и послушай вопрос Зипа. Ответь ему. Если ответ короткий, Зип попросит: «Tell me more!» — расскажи больше.</div></div>
+      <div class="qlist" id="dayQ"></div>
+      <div style="text-align:center;margin-top:10px"><button class="btn pink" data-say="Tell me more!">🗣️ Tell me more!</button></div>
+      <div class="sub">3. Yesterday…</div>
+      <div class="zipbox"><div class="zip blink" style="width:80px"></div><div class="bubble" style="font-size:19px">Yesterday I played in the playground! And you? <button class="say" data-say="Yesterday I played in the playground! And you?">🔊</button></div></div>
+      <div class="goal"><div class="en">Choose a picture and say: “Yesterday I…”</div><button class="rubtn">RU ▾</button>
+        <div class="rutx">Что ты делала вчера? Выбери картинку и скажи фразу целиком.</div></div>
+      <div class="chips" id="ychips"></div>
+      <div class="talk" id="yans"><div class="line"><span class="who you">🗣️ You</span> Yesterday I …</div></div>
+      <div class="nav"><button class="btn light" data-go="4">◀ Back</button><button class="btn green" data-finish="4" data-next="6">⭐ Finish ▶</button></div>
+    </div>
+  </section>
+
+  <!-- 6 FINAL -->
+  <section class="screen" data-step="6">
+    <div class="card" style="text-align:center">
+      <span class="tag">MISSION COMPLETE</span>
+      <h2 class="title">Well done, Agent Susanna!</h2>
+      <div style="margin:18px 0 10px"><div class="badge"><div class="b1">SUPER AGENT</div><div class="b2">Susanna</div><div class="b3">👽⭐</div><div class="b1">EARTH SCHOOL</div></div></div>
+      <div style="font:800 22px 'Baloo 2',sans-serif;margin-top:22px">⭐ <span id="finalStars">0</span> stars</div>
+      <div class="sub" style="justify-content:center">Now I can… <button class="say" data-say="Now I can...">🔊</button></div>
+      <div class="cans">
+        <button class="can" data-t="ask questions">❓ …ask questions.</button>
+        <button class="can" data-t="say a and an">🍎 …say a / an.</button>
+        <button class="can" data-t="hear short and long sounds">👂 …hear short and long sounds.</button>
+      </div>
+      <div class="zipbox" style="max-width:600px;margin:10px auto">
+        <div class="zip zip-wave blink"></div>
+        <div class="bubble">Mission complete! Bye, Agent! <button class="say" data-say="Mission complete! Bye, Agent!">🔊</button></div>
+      </div>
+      <div class="nav"><button class="btn light" data-go="5">◀ Back</button><button class="btn pink" id="partyBtn">🎉 Party!</button></div>
+    </div>
+  </section>
+
+  <!-- 7 HOMEWORK -->
+  <section class="screen" data-step="7">
+    <div class="card">
+      <span class="tag" style="background:#1b1f4b">HOMEWORK</span>
+      <h2 class="title">🕵️ Secret missions</h2>
+      <div class="hwtabs" id="hwTabs">
+        <button class="hwtab on" data-p="0">🗣️ 1</button><button class="hwtab" data-p="1">👂 2</button><button class="hwtab" data-p="2">✏️ 3</button>
+      </div>
+
+      <div class="hwp on" data-p="0">
+        <div class="sub">Mission 1: My school</div>
+        <div class="zipbox"><div class="zip blink" style="width:80px"></div><div class="bubble" style="font-size:19px">Tell me about your school, Agent! <button class="say" data-say="Tell me about your school, Agent!">🔊</button></div></div>
+        <div class="hw"><button class="rubtn">RU ▾</button>
+          <div class="hl task"><div class="hen">Say these 4 sentences:</div><div class="rutx">Скажи вслух эти 4 предложения:</div></div>
+          <ol class="hwl">
+            <li><div class="hen">My school is in <span class="blank">…</span> .</div><div class="rutx">Моя школа находится в … (назови город).</div></li>
+            <li><div class="hen">I've got a <span class="blank">…</span> and an <span class="blank">…</span> in my bag.</div><div class="hen trn">an: 🍎 apple · 🍊 orange · 🧽 eraser · 📘 English book</div><div class="rutx">У меня в портфеле есть … и … (одна вещь с a, другая с an). С an можно сказать: an apple — яблоко, an orange — апельсин, an eraser — ластик, an English book — учебник английского.</div></li>
+            <li><div class="hen">My favourite colour is <span class="blank">…</span> .</div><div class="rutx">Мой любимый цвет — … .</div></li>
+            <li><div class="hen">I go to school by <span class="blank">…</span> .</div><div class="hen trn">🚌 bus · 🚗 car · 🚲 bike — or: I walk to school.</div><div class="rutx">Я езжу в школу на … (bus — автобусе, car — машине, bike — велосипеде). Если ходишь пешком, скажи: I walk to school.</div></li>
+          </ol>
+          <div class="hl ex"><div class="hen">Listen 🔊: My school is in Moscow. I've got a ruler and an apple in my bag. My favourite colour is blue. I go to school by car. <button class="say" data-say="My school is in Moscow. I've got a ruler and an apple in my bag. My favourite colour is blue. I go to school by car.">🔊</button></div><div class="rutx">Послушай пример: Моя школа в Москве. У меня в портфеле есть линейка и яблоко. Мой любимый цвет — синий. Я езжу в школу на машине.</div></div>
+          <div class="hl"><div class="hen">Now say your sentences. Say them again! 🔁</div><div class="rutx">Теперь скажи свои предложения. Повтори их ещё раз!</div></div>
+        </div>
+        <div class="nav"><button class="btn light" data-go="0">◀ Home</button><button class="btn green" data-hwp="1">Mission 2 ▶</button></div>
+      </div>
+
+      <div class="hwp" data-p="1">
+        <div class="sub">Mission 2: Short or long?</div>
+        <div class="zipbox"><div class="zip blink" style="width:80px"></div><div class="bubble" style="font-size:19px">Ship or sheep? Help me, Agent! <button class="say" data-say="Ship or sheep? Help me, Agent!">🔊</button></div></div>
+        <div class="hw"><button class="rubtn">RU ▾</button>
+          <div class="hl task"><div class="hen">Listen to the words 🔊. Is it short <span class="ipa">[ɪ]</span> like ship 🚢 or long <span class="ipa">[iː]</span> like sheep 🐑? Put each word in the right box.</div><div class="rutx">Нажми на слово и послушай. Звук «и» короткий [ɪ], как в ship, или долгий [iː] («ии»), как в sheep? Перетащи каждое слово в нужную коробку.</div></div>
+          <div class="pool" id="hwPool"></div>
+          <div class="zones">
+            <div class="zone" data-z="short"><h3>✋ short <span class="ipa">[ɪ]</span> — sh<u>i</u>p 🚢</h3><div class="zbody"></div></div>
+            <div class="zone" data-z="long"><h3>↔️ long <span class="ipa">[iː]</span> — sh<u>ee</u>p 🐑</h3><div class="zbody"></div></div>
+          </div>
+          <div class="talk" id="hwRes"><div class="line"><span class="who zipw">👽 Zip</span> Ship or sheep? 🤔</div></div>
+        </div>
+        <div class="nav"><button class="btn light" data-hwp="0">◀ Mission 1</button><button class="btn green" data-hwp="2">Mission 3 ▶</button></div>
+      </div>
+
+      <div class="hwp" data-p="2">
+        <div class="sub">Mission 3: Questions for Zip</div>
+        <div class="zipbox"><div class="zip blink" style="width:80px"></div><div class="bubble" style="font-size:19px">Ask me two questions, Agent! <button class="say" data-say="Ask me two questions, Agent!">🔊</button></div></div>
+        <div class="hw"><button class="rubtn">RU ▾</button>
+          <div class="hl task"><div class="hen">Write 2 questions for Zip.</div><div class="rutx">Напиши 2 вопроса для Зипа.</div></div>
+          <div class="hl"><div class="hen">1. Where …? &nbsp;<span class="trn">Look: Where is your cat?</span></div><div class="rutx">1. Вопрос с Where…? (где?). Например: Где твоя кошка?</div></div>
+          <div class="qin"><input id="hq0" class="name" placeholder="Where …?" autocomplete="off" autocorrect="off" spellcheck="false"><button class="say" data-q="0">🔊</button></div>
+          <div class="hl"><div class="hen">2. How many …? &nbsp;<span class="trn">Look: How many friends have you got?</span></div><div class="rutx">2. Вопрос с How many…? (сколько?). Например: Сколько у тебя друзей?</div></div>
+          <div class="qin"><input id="hq1" class="name" placeholder="How many …?" autocomplete="off" autocorrect="off" spellcheck="false"><button class="say" data-q="1">🔊</button></div>
+          <div class="hl"><div class="hen">Small word first! <b>is, have, can, do</b> &nbsp;Write new questions!</div><div class="rutx">После вопросительного слова — маленькое слово: is, have, can или do. Придумай свои вопросы, не такие, как в примере.</div></div>
+          <div style="text-align:center;margin-top:8px"><button class="btn green" id="hqCheck">✓ Is it right?</button></div>
+          <div class="talk" id="hqRes"><div class="line"><span class="who zipw">👽 Zip</span> Ask me! ✏️</div></div>
+        </div>
+        <div class="nav"><button class="btn light" data-hwp="1">◀ Mission 2</button><button class="btn pink" id="hwDoneBtn">🎉 Done!</button></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div id="tmr" title="Время на задание / всего. Двойное нажатие — сбросить перед уроком">
+  <svg viewBox="0 0 40 40"><circle class="bg" cx="20" cy="20" r="16"/><circle class="fg" id="tmrFg" cx="20" cy="20" r="16" stroke-dasharray="100.5" stroke-dashoffset="100.5"/></svg>
+  <div><div id="tmrStep">0:00 / 1 мин</div><div class="t2" id="tmrAll">всего 0:00 / 45</div></div>
+</div>
+
+<script>
+{
+/* ---------- Zip ---------- */
+function zipSVG(){return `<svg viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;overflow:visible">
+<line x1="80" y1="40" x2="66" y2="8" stroke="#2fa866" stroke-width="6" stroke-linecap="round"/><line x1="120" y1="40" x2="134" y2="8" stroke="#2fa866" stroke-width="6" stroke-linecap="round"/>
+<circle cx="66" cy="8" r="9" fill="#ffc93c"/><circle cx="134" cy="8" r="9" fill="#ff6fa5"/>
+<g class="arm-l"><path d="M48 120 Q20 130 18 160" stroke="#5fd38d" stroke-width="14" fill="none" stroke-linecap="round"/></g>
+<g class="arm-r"><path d="M152 120 Q182 100 186 74" stroke="#5fd38d" stroke-width="14" fill="none" stroke-linecap="round"/></g>
+<ellipse cx="100" cy="125" rx="58" ry="70" fill="#5fd38d"/><ellipse cx="100" cy="150" rx="34" ry="36" fill="#8ce6ae"/>
+<rect x="66" y="188" width="18" height="26" rx="9" fill="#2fa866"/><rect x="116" y="188" width="18" height="26" rx="9" fill="#2fa866"/>
+<g class="eye"><ellipse cx="70" cy="92" rx="15" ry="17" fill="#fff"/><circle cx="73" cy="95" r="7" fill="#1f2340"/><circle cx="76" cy="91" r="2.5" fill="#fff"/></g>
+<g class="eye"><ellipse cx="100" cy="78" rx="17" ry="19" fill="#fff"/><circle cx="103" cy="82" r="8" fill="#1f2340"/><circle cx="106" cy="77" r="2.8" fill="#fff"/></g>
+<g class="eye"><ellipse cx="130" cy="92" rx="15" ry="17" fill="#fff"/><circle cx="133" cy="95" r="7" fill="#1f2340"/><circle cx="136" cy="91" r="2.5" fill="#fff"/></g>
+<path d="M78 122 Q100 142 122 122" stroke="#1f2340" stroke-width="5" fill="none" stroke-linecap="round"/>
+<circle cx="62" cy="120" r="7" fill="#ff9fc2" opacity=".7"/><circle cx="138" cy="120" r="7" fill="#ff9fc2" opacity=".7"/></svg>`;}
+document.querySelectorAll('.zip').forEach(z=>z.innerHTML=zipSVG());
+document.getElementById('brandZip').innerHTML=zipSVG();
+const $=id=>document.getElementById(id);
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+{const s=$('stars-bg');let h='';for(let i=0;i<90;i++){h+=`<circle cx="${Math.random()*100}%" cy="${Math.random()*100}%" r="${Math.random()*1.6+.4}" fill="#fff" opacity="${Math.random()*.7+.2}"/>`;}s.innerHTML=h;}
+
+/* ---------- speech ---------- */
+let voice=null,voiceChoice='auto';
+try{voiceChoice=localStorage.getItem('zipVoice')||'auto';}catch(e){}
+function scoreVoice(v){if(!/^en/i.test(v.lang))return -1;let s=0;const n=v.name;
+  if(/natural|neural|online/i.test(n))s+=50;if(/premium|enhanced/i.test(n))s+=40;if(/google/i.test(n))s+=30;
+  if(/samantha|ava|allison|aria|jenny|serena|karen|daniel|moira|tessa|zira/i.test(n))s+=15;
+  if(/en[-_]US/i.test(v.lang))s+=6;else if(/en[-_]GB/i.test(v.lang))s+=5;
+  if(/compact|novelty|whisper|bad news|bells|boing|bubbles|cellos|zarvox|trinoids|albert|jester|organ|superstar|wobble|grandma|grandpa|rocko|shelley|flo|eddy|reed|sandy/i.test(n))s-=60;return s;}
+function voices(){try{return speechSynthesis.getVoices().filter(v=>scoreVoice(v)>=0).sort((a,b)=>scoreVoice(b)-scoreVoice(a));}catch(e){return[];}}
+function pickVoice(){const l=voices();voice=(voiceChoice!=='auto'&&l.find(v=>v.name===voiceChoice))||l[0]||null;
+  const sel=$('voiceSel');sel.innerHTML='<option value="auto">🔊 Voice: best</option>'+l.slice(0,25).map(v=>`<option value="${v.name.replace(/"/g,'&quot;')}">${v.name}</option>`).join('');
+  sel.value=[...sel.options].some(o=>o.value===voiceChoice)?voiceChoice:'auto';}
+try{pickVoice();speechSynthesis.onvoiceschanged=pickVoice;}catch(e){}
+$('voiceSel').addEventListener('change',e=>{voiceChoice=e.target.value;try{localStorage.setItem('zipVoice',voiceChoice);}catch(_){}pickVoice();say('Hello! I am Zip.');});
+let zipMute=false;try{zipMute=localStorage.getItem('zipMute')==='1';}catch(e){}
+let lastSpeakTap=0;document.addEventListener('pointerdown',e=>{const b=e.target.closest('button');lastSpeakTap=(b&&b.textContent.includes('🔊'))?Date.now():0;},true);
+function muteDraw(){const m=document.getElementById('muteBtn');if(m){m.textContent=zipMute?'🔇 Sound: off':'🔈 Sound: on';m.classList.toggle('muted',zipMute);}}
+document.addEventListener('click',e=>{if(!e.target.closest('#muteBtn'))return;zipMute=!zipMute;try{localStorage.setItem('zipMute',zipMute?'1':'0');}catch(_){}muteDraw();if(zipMute)try{speechSynthesis.cancel();}catch(_){}});
+setTimeout(muteDraw,0);
+function say(t){if(zipMute&&Date.now()-lastSpeakTap>1500)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang=voice?voice.lang:'en-US';u.rate=.88;if(voice)u.voice=voice;speechSynthesis.speak(u);}catch(e){}}
+
+/* ---------- global clicks: speak, RU, help, navigation ---------- */
+const STEPS=7,S={stars:0,done:{}};
+document.addEventListener('click',e=>{
+  const sb=e.target.closest('[data-say]');if(sb)say(sb.dataset.say);
+  const rb=e.target.closest('.rubtn');if(rb){const box=rb.parentElement;box.classList.toggle('open');rb.textContent=box.classList.contains('open')?'RU ▴':'RU ▾';}
+  const hb=e.target.closest('[data-help]');if(hb)$(hb.dataset.help).classList.toggle('show');
+  const g=e.target.closest('[data-go]');if(g)go(+g.dataset.go);
+  const f=e.target.closest('[data-finish]');if(f){const l=f.dataset.finish;if(!S.done[l]){S.done[l]=1;addStar(3,f);say(['','Great!','Super!','Well done!','Great, Agent!'][l]);}setTimeout(()=>go(+f.dataset.next),900);}
+});
+const ruT=$('ruToggle');ruT.onclick=()=>{document.body.classList.toggle('ru-all');ruT.classList.toggle('on');};
+const dots=$('dots');
+for(let i=0;i<STEPS;i++){const d=document.createElement('button');d.className='dot';d.setAttribute('aria-label','Screen '+(i+1));d.onclick=()=>go(i);dots.appendChild(d);}
+let cur=0,sStart=Date.now(),tStart=Date.now();
+function go(n){if(n!==cur){cur=n;sStart=Date.now();}
+  document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',+s.dataset.step===n));
+  [...dots.children].forEach((d,i)=>d.className='dot'+(i<n?' done':'')+(i===n?' on':''));
+  [...dots.children].forEach(d=>{if(n===7)d.className='dot';});
+  if(n===6){$('finalStars').textContent=S.stars;setTimeout(confetti,400);}
+  window.scrollTo({top:0,behavior:'smooth'});tick();}
+function addStar(n,el){S.stars+=n;$('stars').textContent=S.stars;
+  const t=document.querySelector('.starcount').getBoundingClientRect();
+  const r=el?el.getBoundingClientRect():{left:innerWidth/2,top:innerHeight/2,width:0,height:0};
+  for(let i=0;i<Math.min(n,5);i++){const s=document.createElement('div');s.className='starfly';s.textContent='⭐';
+    const x=r.left+r.width/2-17+i*14,y=r.top+r.height/2-17;s.style.left=x+'px';s.style.top=y+'px';
+    s.style.setProperty('--dx',(t.left-x)+'px');s.style.setProperty('--dy',(t.top-y)+'px');s.style.animationDelay=(i*.12)+'s';
+    document.body.appendChild(s);setTimeout(()=>s.remove(),1500);}}
+function confetti(){const cols=['#ffc93c','#5fd38d','#ff6fa5','#5ec8ff','#8b7bff'];
+  for(let i=0;i<90;i++){const c=document.createElement('div');c.className='confetti';c.style.left=Math.random()*100+'vw';c.style.background=cols[i%5];
+    c.style.animationDuration=(1.8+Math.random()*1.8)+'s';c.style.animationDelay=(Math.random()*.6)+'s';c.style.borderRadius=Math.random()<.5?'50%':'2px';
+    document.body.appendChild(c);setTimeout(()=>c.remove(),4500);}}
+$('partyBtn').onclick=confetti;
+function shake(el){el.classList.remove('shake');void el.offsetWidth;el.classList.add('shake');}
+const zipLine=t=>`<div class="line"><span class="who zipw">👽 Zip</span> ${t}</div>`;
+const youLine=t=>`<div class="line"><span class="who you">🗣️ You</span> ${t}</div>`;
+
+/* ---------- touch drag (iPad) ---------- */
+function draggable(el,onDrop,onTap){
+  el.addEventListener('pointerdown',e=>{
+    if(el.classList.contains('lock'))return;
+    e.preventDefault();
+    const r=el.getBoundingClientRect(),sx=e.clientX,sy=e.clientY;let g=null,over=null;
+    const mv=ev=>{const dx=ev.clientX-sx,dy=ev.clientY-sy;
+      if(!g&&Math.hypot(dx,dy)>8){g=el.cloneNode(true);g.classList.add('dragghost');g.style.width=r.width+'px';g.style.height=r.height+'px';document.body.appendChild(g);el.classList.add('lifted');}
+      if(g){ev.preventDefault();g.style.left=(r.left+dx)+'px';g.style.top=(r.top+dy)+'px';
+        if(ev.clientY>innerHeight-70)window.scrollBy(0,14);else if(ev.clientY<70)window.scrollBy(0,-14);
+        const hit=document.elementFromPoint(ev.clientX,ev.clientY);const z=hit&&hit.closest('.zone');
+        if(over&&over!==z)over.classList.remove('hover');over=z;if(z)z.classList.add('hover');}};
+    const up=()=>{window.removeEventListener('pointermove',mv);window.removeEventListener('pointerup',up);window.removeEventListener('pointercancel',up);
+      if(over)over.classList.remove('hover');el.classList.remove('lifted');
+      if(g){g.remove();if(over)onDrop(over,el);}else if(onTap)onTap(el);};
+    window.addEventListener('pointermove',mv,{passive:false});window.addEventListener('pointerup',up);window.addEventListener('pointercancel',up);
+  });}
+const cardHTML=(e,w)=>`<span class="emo">${e}</span><span class="w">${w}</span>`;
+
+/* ---------- WARM-UP ---------- */
+const GUESS=['Is it a banana?','Is it a sheep?','Is it a robot?','Is it a cat?','Is it a hat?','Is it a fish?','Is it an egg?'];let gi=-1;
+$('guessBtn').onclick=()=>{gi=(gi+1)%GUESS.length;$('guess').textContent=GUESS[gi];say(GUESS[gi]);};
+$('guessSay').onclick=()=>say($('guess').textContent);
+
+/* ---------- MISSION 1: bag + a/an ---------- */
+const BAG=[{w:'ruler',e:'📏',z:'in',a:'a'},{w:'pencil',e:'✏️',z:'in',a:'a'},{w:'book',e:'📕',z:'in',a:'a'},{w:'pen',e:'🖊️',z:'in',a:'a'},
+  {w:'apple',e:'🍎',z:'in',a:'an'},{w:'orange',e:'🍊',z:'in',a:'an'},{w:'egg',e:'🥚',z:'in',a:'an'},
+  {w:'bus',e:'🚌',z:'out'},{w:'bike',e:'🚲',z:'out'},{w:'sheep',e:'🐑',z:'out'},{w:'teacher',e:'👩‍🏫',z:'out'}];
+const art=$('artBox');
+shuffle(BAG).forEach(it=>{const c=document.createElement('div');c.className='dcard';c.innerHTML=cardHTML(it.e,it.w);$('bagPool').appendChild(c);
+  draggable(c,(zone,el)=>{
+    if(zone.dataset.z!==it.z){shake(el);say('Hmm... try again!');art.innerHTML=zipLine('<span class="no">Hmm… try again! 🤔</span>');return;}
+    zone.querySelector('.zbody').appendChild(el);el.classList.add('lock');
+    if(it.z==='out'){const t=`A ${it.w} in my bag? No! Ha-ha!`;art.innerHTML=zipLine('😂 '+t)+youLine(`No, Zip! Not a ${it.w}!`);say(t);addStar(1,el);return;}
+    art.innerHTML=zipLine(`${it.e} What's this? <button class="art" data-a="a">a</button><button class="art" data-a="an">an</button> ${it.w}? <button class="btn small blue" data-help="helpArt">💡</button>`);
+    art.querySelectorAll('.art').forEach(b=>b.onclick=()=>{
+      if(b.dataset.a===it.a){art.innerHTML=zipLine(`<span class="ok">Yes! Thank you!</span>`)+youLine(`Say it: <span class="ok">It's ${it.a} ${it.w}.</span>`);say(`Yes! It's ${it.a} ${it.w}!`);el.querySelector('.w').textContent=it.a+' '+it.w;addStar(1,el);}
+      else{shake(b);say('Hmm... try again!');}});
+  },()=>say(it.w));});
+
+/* ---------- MISSION 2: sounds + numbers ---------- */
+const SND=[{w:'ship',h:'sh<u>i</u>p',e:'🚢',z:'short'},{w:'sheep',h:'sh<u>ee</u>p',e:'🐑',z:'long'},{w:'it',h:'<u>i</u>t',e:'👉',z:'short'},{w:'eat',h:'<u>ea</u>t',e:'😋',z:'long'}];
+let earW=null;
+$('earBtn').onclick=()=>{earW=SND[Math.floor(Math.random()*SND.length)];say(earW.w);$('earRes').innerHTML=zipLine('Short or long? 🤔');};
+document.querySelectorAll('[data-ear]').forEach(b=>b.onclick=()=>{if(!earW){$('earRes').innerHTML=zipLine('Tap “🔊 Zip says” first!');return;}
+  const ok=(b.dataset.ear==='1')===(earW.z==='long');
+  $('earRes').innerHTML=ok?zipLine(`<span class="ok">Yes! ${earW.e} ${earW.h} — ${earW.z}!</span>`)+youLine(`Say it: <span class="ok">${earW.w}</span>`):zipLine('<span class="no">Listen again! 🔁</span>');
+  if(ok){addStar(1,b);earW=null;}else say(earW.w);});
+const MIS=[{p:'🚢🌊',z:'Look! A sheep on the sea!',r:"No, Zip! It's a ship!"},
+  {p:'🐑',z:"Look! A ship! It's white.",r:"No, Zip! It's a sheep!"},
+  {p:'😋🍎',z:'I it an apple every day.',r:'No, Zip! You eat an apple!'},
+  {p:'👉🎒',z:'Where is my bag? Oh, eat is here!',r:'No, Zip! It is here!'}];
+let mi=0;
+function misShow(){const m=MIS[mi];$('mPic').textContent=m.p;$('mBox').innerHTML=zipLine(`${m.z} <button class="say" data-say="${m.z}">🔊</button>`)+youLine('…');}
+$('mShow').onclick=()=>{const m=MIS[mi];$('mBox').innerHTML=zipLine(`${m.z} <button class="say" data-say="${m.z}">🔊</button>`)+youLine(`<span class="ok">${m.r}</span> <button class="say" data-say="${m.r}">🔊</button>`);addStar(1,$('mShow'));};
+$('mMore').onclick=()=>{mi=(mi+1)%MIS.length;misShow();};
+misShow();
+
+/* ---------- MISSION 3: interview ---------- */
+const IV=[{e:'🏫',f:'Where _ your school?',ru:'Где твоя школа?',q:'Where is your school?',a:"It's on planet Blip. It's very big. My friends are there."},
+  {e:'👩‍🏫',f:'How many teachers _ you _?',ru:'Сколько у тебя учителей?',q:'How many teachers have you got?',a:"I've got three teachers. They're robots!"},
+  {e:'🛝',f:'_ you got a playground?',ru:'У тебя есть игровая площадка?',q:'Have you got a playground?',a:"Yes, I have. It's on the Moon. I play there with my friends."},
+  {e:'🚲',f:'_ you ride a bike?',ru:'Ты умеешь кататься на велосипеде?',q:'Can you ride a bike?',a:"Yes, I can! I've got a green bike!"},
+  {e:'🍎',f:'_ you like apples?',ru:'Тебе нравятся яблоки?',q:'Do you like apples?',a:'Yes, I do! I like green apples!'},
+  {e:'🚌',f:'How _ you go to school?',ru:'Как ты добираешься до школы?',q:'How do you go to school?',a:"I go by spaceship. It's big and green!"},
+  {e:'❤️',f:'Why _ you like your school?',ru:'Почему тебе нравится твоя школа?',q:'Why do you like your school?',a:'Because my friends are there. And we play games!'},
+  {e:'🌍',f:'_ you like to come to my school?',ru:'Хочешь прийти в мою школу?',q:'Would you like to come to my school?',a:"Yes, please! I'd like to see your playground."}];
+const gapHTML=f=>f.replace(/_/g,'<span class="gap"></span>');
+$('flips').innerHTML=IV.map((c,i)=>`<div class="flip" data-i="${i}"><div class="flip-in">
+  <div class="face front"><span class="emo">${c.e}</span><span class="kw">${gapHTML(c.f)}</span><button class="hintbtn">💡</button><span class="hinttxt"></span></div>
+  <div class="face back"><span class="q2">${c.q}</span><span>👽 ${c.a}</span></div></div></div>`).join('');
+function setHint(f,lv){const c=IV[+f.dataset.i];const t=f.querySelector('.hinttxt');if(!t)return;f.dataset.h=lv;f.classList.toggle('hint',lv>0);
+  t.textContent=lv===2?c.q:lv===1?c.ru:'';f.querySelector('.hintbtn').textContent=lv===2?'💡✓':lv===1?'💡+':'💡';}
+const ivDone={};
+$('flips').addEventListener('click',e=>{const f=e.target.closest('.flip');if(!f)return;
+  if(e.target.closest('.hintbtn')){setHint(f,Math.min(2,(+f.dataset.h||0)+1));return;}
+  const i=+f.dataset.i;f.classList.toggle('open');
+  if(f.classList.contains('open')){say(IV[i].a);if(!ivDone[i]){ivDone[i]=1;addStar(1,f);}}});
+const ZQ=['Where is your school?','How many teachers have you got?','Have you got a playground?','Can you ride a bike?','How do you go to school?','Why do you like your school?'];
+$('zq').innerHTML=ZQ.map(q=>`<div class="qline"><span>${q}</span><button class="say" data-say="${q}">🔊</button></div>`).join('');
+$('swapBtn').onclick=()=>{const s=$('swap');const show=s.style.display==='none';s.style.display=show?'block':'none';if(show)say('Now I ask you! Answer and tell me more.');};
+
+/* ---------- MISSION 4: day ---------- */
+const DAY=[{w:'get up',e:'⏰'},{w:'go to school',e:'🚌'},{w:'play in the playground',e:'🛝'},{w:'do homework',e:'📝'},{w:'go to bed',e:'🛏️'}];
+$('dayPics').innerHTML=DAY.map(d=>`<button data-say="${d.w}"><span class="emo">${d.e}</span>${d.w}</button>`).join('');
+const DQ=['What do you do in the morning?','Have you got homework today?','What do you do in the playground?','Do you like your school? Why?'];
+$('dayQ').innerHTML=DQ.map(q=>`<div class="qline"><span>${q}</span><button class="say" data-say="${q}">🔊</button></div>`).join('');
+const YV=[['💃','danced'],['🎨','painted a picture'],['🎶','listened to music'],['📺','watched cartoons'],['👭','played with my friends'],['🍳','cooked with Mum']];
+$('ychips').innerHTML=YV.map(v=>`<button class="chip" data-v="${v[1]}"><span>${v[0]}</span> ${v[1]}</button>`).join('');
+$('ychips').addEventListener('click',e=>{const c=e.target.closest('.chip');if(!c)return;
+  document.querySelectorAll('#ychips .chip').forEach(x=>x.classList.toggle('sel',x===c));
+  const t='Yesterday I '+c.dataset.v+'.';$('yans').innerHTML=youLine(`<span class="ok">${t}</span>`);say(t);});
+
+/* ---------- FINAL ---------- */
+document.querySelectorAll('.can').forEach(b=>b.onclick=()=>{b.classList.toggle('sel');if(b.classList.contains('sel'))say('Now I can '+b.dataset.t+'.');});
+const HWW=[{e:'🚢',w:'ship',z:'short'},{e:'🐑',w:'sheep',z:'long'},{e:'👉',w:'it',z:'short'},{e:'😋',w:'eat',z:'long'},{e:'🪑',w:'sit',z:'short'},{e:'🟢',w:'green',z:'long'},{e:'🐘',w:'big',z:'short'},{e:'3️⃣',w:'three',z:'long'}];
+let hwDone=0;
+shuffle(HWW).forEach(it=>{const c=document.createElement('div');c.className='dcard';c.innerHTML=cardHTML(it.e,it.w);$('hwPool').appendChild(c);
+  draggable(c,(zone,el)=>{if(zone.closest('[data-step="7"]')===null)return;
+    if(zone.dataset.z!==it.z){shake(el);say('Listen again! '+it.w);$('hwRes').innerHTML=zipLine('<span class="no">Listen again! 🔁</span>');return;}
+    zone.querySelector('.zbody').appendChild(el);el.classList.add('lock');say(it.w);hwDone++;
+    $('hwRes').innerHTML=hwDone===HWW.length?zipLine('<span class="ok">Super! Thank you, Agent! 🎉</span>'):zipLine(`<span class="ok">Yes! ${it.w}!</span> (${hwDone}/${HWW.length})`);
+    if(hwDone===HWW.length)confetti();},()=>say(it.w));});
+
+
+
+function hwShow(k){document.querySelectorAll('.hwp').forEach(x=>x.classList.toggle('on',+x.dataset.p===k));
+  document.querySelectorAll('.hwtab').forEach(x=>x.classList.toggle('on',+x.dataset.p===k));window.scrollTo({top:0,behavior:'smooth'});}
+document.addEventListener('click',e=>{const t=e.target.closest('.hwtab,[data-hwp]');if(!t)return;hwShow(+(t.dataset.hwp??t.dataset.p));});
+$('hwDoneBtn').onclick=()=>{confetti();say('Mission complete! Thank you, Agent!');};
+/* homework questions: saved on this device only */
+const HQ=[{st:/^where\b/i,need:'Where'},{st:/^how many\b/i,need:'How many'}];
+[0,1].forEach(k=>{const el=$('hq'+k);try{el.value=localStorage.getItem('susanna:l1:hq'+k)||'';}catch(e){}
+  el.addEventListener('input',()=>{try{localStorage.setItem('susanna:l1:hq'+k,el.value);}catch(e){}});});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-q]');if(!b)return;const t=$('hq'+b.dataset.q).value.trim();if(t)say(t);});
+$('hqCheck').onclick=()=>{const out=[];
+  [0,1].forEach(k=>{let t=$('hq'+k).value.trim();const n=k+1;
+    if(!t){out.push(zipLine(`${n}. Write a question, please! ✏️`));return;}
+    if(!/\?$/.test(t)){t+='?';$('hq'+k).value=t;try{localStorage.setItem('susanna:l1:hq'+k,t);}catch(e){}}
+    if(!HQ[k].st.test(t)){out.push(zipLine(`<span class="no">${n}. Start with “${HQ[k].need}…” 🔁</span>`));return;}
+    const rest=t.replace(HQ[k].st,'').trim().split(/\s+/);const w=k===0?rest[0]:(/^(you|i|we|they|he|she|it)$/i.test(rest[0]||'')?'':rest[1]||'');
+    if(!/^(is|are|do|does|have|has|can)$/i.test(w||'')){out.push(zipLine(`<span class="no">${n}. Small word: is, have, can or do? 🔁</span> <button class="btn small blue" data-go="4">💡</button>`));return;}
+    out.push(zipLine(`<span class="ok">${n}. Good question! ✓</span>`));});
+  $('hqRes').innerHTML=out.join('');if(out.every(x=>x.includes('ok')))say('Great questions, Agent!');};
+/* ---------- timer: minutes per screen, total 45 ---------- */
+const BUDGET={0:1,1:3,2:8,3:8,4:11,5:9,6:2,7:3};
+const fmt=ms=>{const s=Math.floor(ms/1000);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');};
+function tick(){const now=Date.now(),b=BUDGET[cur]*60000,el=now-sStart,f=Math.min(1,el/b);
+  const fg=$('tmrFg');fg.style.strokeDashoffset=100.5*(1-f);fg.style.stroke=el>b?'#ff4d6d':f>.8?'#ffc93c':'#5fd38d';
+  $('tmr').classList.toggle('over',el>b);
+  $('tmrStep').textContent=fmt(el)+' / '+BUDGET[cur]+' мин';
+  const all=now-tStart;$('tmrAll').textContent='всего '+fmt(all)+' / 45'+(all>45*60000?' ⚠':'');}
+$('tmr').ondblclick=()=>{tStart=sStart=Date.now();tick();};
+setInterval(tick,1000);tick();
+}
+</script>
+<script>document.addEventListener('click',function(e){var a=e.target.closest('a[href="words.html"]');if(!a)return;
+if(location.protocol==='file:'||/github\.io$/.test(location.hostname))return;
+e.preventDefault();window.open('https://claude.ai/artifact/UhnCtMGy4WbPr6omzQ2ts2','_blank');});</script>
+</body>
+</html>

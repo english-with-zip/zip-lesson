@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zip's Space House</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+/* VOICE: playful space mission, same as the trial lesson
+   IDEA: Zip's space house — a planet map of levels, each level a short game
+   PICTURE: Zip himself and his house; big tappable cards
+   COLOUR and TYPE: course colours — night blue sky, Zip green, sun yellow, pink, violet; Baloo 2 + Nunito
+   LAYOUT: one level per screen, white card on the starry sky; phone first, wider on laptop */
+:root{--bg1:#1b1f4b;--bg2:#2b2f78;--card:#fff;--ink:#1f2340;--muted:#6b7090;--zip:#5fd38d;--zipdark:#2fa866;--sun:#ffc93c;--pink:#ff6fa5;--sky:#5ec8ff;--violet:#8b7bff;--ok:#1f9d63;--bad:#e0455b;--radius:22px;color-scheme:light}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0}
+body{font-family:"Nunito",system-ui,sans-serif;color:var(--ink);background:radial-gradient(1200px 700px at 80% -10%,#3b3fa0 0%,transparent 60%),linear-gradient(180deg,var(--bg1),var(--bg2));background-attachment:fixed;min-height:100vh;overflow-x:clip;-webkit-tap-highlight-color:transparent}
+button{font-family:inherit;color:var(--ink);touch-action:manipulation;-webkit-appearance:none;appearance:none}
+#stars-bg{position:fixed;inset:0;pointer-events:none;z-index:0;width:100%;height:100%}
+.wrap{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:12px 14px 80px}
+h1,h2,h3{font-family:"Baloo 2","Nunito",sans-serif;margin:0}
+/* top bar */
+.topbar{display:flex;align-items:center;gap:8px;color:#fff;margin-bottom:12px;flex-wrap:wrap}
+.brand{font:800 21px "Baloo 2",sans-serif;display:flex;align-items:center;gap:8px}
+.dots{flex:1 0 auto}
+.brand .bz{width:34px;display:inline-block}
+.tb{background:rgba(255,255,255,.14);color:#fff;border:0;padding:8px 12px;border-radius:999px;font:800 14px "Nunito",sans-serif;cursor:pointer;min-height:40px}
+.tb.on{background:var(--sun);color:var(--ink)}
+select.tb{max-width:190px}select.tb option{color:#1f2340}
+.starcount{background:rgba(255,255,255,.14);padding:7px 14px;border-radius:999px;font-weight:800;font-size:17px;white-space:nowrap}
+/* screens */
+.screen{display:none;animation:pop .4s ease}.screen.active{display:block}
+@keyframes pop{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.card{background:var(--card);border-radius:var(--radius);padding:20px;box-shadow:0 18px 50px rgba(0,0,0,.25)}
+.level-tag{display:inline-block;background:var(--violet);color:#fff;font:800 14px "Baloo 2",sans-serif;padding:4px 14px;border-radius:999px;margin-bottom:6px;letter-spacing:.5px}
+.title{font-size:32px;line-height:1.1;margin-bottom:6px}
+.ru{color:var(--muted);font-size:15px;font-weight:700;margin-top:4px;display:none}
+.goal.open .ru,.help.open .ru,.wordcard.open .ru,.result.open .ru,body.ru-all .ru{display:block}
+.rub{border:0;background:#fff;border-radius:999px;font:800 13px "Nunito",sans-serif;padding:3px 10px;margin-left:6px;cursor:pointer;box-shadow:0 2px 0 #e0c266;vertical-align:middle;min-height:28px;color:var(--ink)}
+.help .rub,.wordcard .rub{box-shadow:0 2px 0 #9ed5f1}
+.goal ol{margin:2px 0 0;padding-left:22px}.goal li{margin:2px 0}
+.dots{display:flex;gap:6px;justify-content:center}
+.dot{flex:none;width:13px;height:13px;border-radius:50%;background:rgba(255,255,255,.25);border:0;padding:0;cursor:pointer}
+.dot.on{background:var(--sun);transform:scale(1.25)}.dot.done{background:var(--zip)}
+/* task box (as in the trial lesson) */
+.goal{background:#fff6d9;border:3px solid #ffe08a;border-radius:16px;padding:10px 14px 10px 50px;margin:6px 0 12px;font-size:18px;font-weight:800;line-height:1.35;position:relative;color:var(--ink)}
+.goal::before{content:"🎯";position:absolute;left:13px;top:9px;font-size:24px}
+.goal .ru{color:#6b5a1e;font-size:15px}
+/* Zip */
+.zipbox{display:flex;gap:12px;align-items:flex-end;margin:8px 0 12px}
+.zipbox .zip{width:96px;flex:0 0 auto}
+.bubble{position:relative;background:#f1f6ff;border:3px solid #dbe6ff;border-radius:20px;padding:12px 14px;font-size:19px;font-weight:800;flex:1;color:var(--ink)}
+.bubble:before{content:"";position:absolute;left:-14px;bottom:18px;border:10px solid transparent;border-right-color:#dbe6ff}
+.say{border:0;background:var(--sky);color:#fff;border-radius:50%;width:42px;height:42px;font-size:18px;cursor:pointer;box-shadow:0 3px 0 #2c9bd6;vertical-align:middle;flex:none}
+.say:active{transform:translateY(2px);box-shadow:none}
+/* buttons */
+.btn{border:0;cursor:pointer;font:800 19px "Baloo 2",sans-serif;padding:11px 22px;border-radius:16px;background:var(--sun);color:var(--ink);box-shadow:0 5px 0 #d9a21a;min-height:50px}
+.btn:active{transform:translateY(3px);box-shadow:0 2px 0 #d9a21a}
+.btn.green{background:var(--zip);box-shadow:0 5px 0 var(--zipdark);color:#fff}
+.btn.pink{background:var(--pink);box-shadow:0 5px 0 #d94784;color:#fff}
+.btn.ghost{background:#eef1ff;box-shadow:0 5px 0 #c9cff0}
+.btn.blue{background:#dff4ff;box-shadow:0 5px 0 #9ed5f1}
+.btn.small{font-size:16px;padding:7px 14px;min-height:44px}
+.nav{display:flex;justify-content:space-between;align-items:center;margin-top:18px;gap:10px;flex-wrap:wrap}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.center{text-align:center}
+/* talk lines (exercise / feedback) */
+.talk:empty{display:none}
+.talk{color:var(--ink);background:#effcf6;border:3px solid #bfeed3;border-radius:18px;padding:10px 14px;margin-top:12px;display:grid;gap:6px;min-height:56px}
+.line{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font:800 20px "Baloo 2",sans-serif}
+.who{font:800 13px "Nunito",sans-serif;border-radius:999px;padding:3px 10px;flex:none}
+.who.zipw{background:#dcfbe9;color:#17734a}.who.you{background:#ffe1ec;color:#a3285a}
+.ok{color:var(--ok)}.no{color:var(--bad)}
+/* rule box */
+.help{display:none;background:#eef7ff;border:3px solid #cfe6ff;border-radius:18px;padding:12px 14px;margin:6px 0 12px;color:var(--ink)}
+.help.show{display:block}
+.rrow{font:800 19px "Baloo 2",sans-serif;margin:5px 0;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.rt{font:800 20px "Baloo 2",sans-serif;margin:0 0 6px;color:#24507a;padding-right:56px}
+.rts{font:700 15px "Nunito",sans-serif;color:var(--muted);margin:-4px 0 8px;padding-right:56px}
+.help .rrow{background:#fff;border-radius:12px;padding:6px 10px}
+.rcards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:6px 0 10px;clear:both}
+.rc{background:#fff;border-radius:14px;padding:8px;text-align:center}
+.rh{font:800 26px "Baloo 2",sans-serif;color:#5b47e0;line-height:1}
+.ra{display:flex;justify-content:center;align-items:flex-end;gap:2px;min-height:48px}
+.ra span[data-av]{display:inline-block}
+.rn{font:800 14px "Nunito",sans-serif;color:var(--muted)}
+.rex{display:grid;gap:6px}
+.rx{background:#fff;border-radius:12px;padding:8px 10px;display:flex;flex-wrap:wrap;align-items:center;gap:8px;font:800 19px "Baloo 2",sans-serif}
+.rx small{font:700 15px "Nunito",sans-serif;color:var(--muted)}
+.rx .ans{background:#effcf6;border-radius:10px;padding:0 8px}
+.pill{background:#fff;border:3px solid #cfe6ff;border-radius:12px;padding:0 10px}
+.ipa{font-family:"Nunito",sans-serif;font-weight:800;background:#fff;border:2px solid #cfd5f5;border-radius:8px;padding:0 6px;white-space:nowrap}
+.x{color:var(--bad);text-decoration:line-through}
+/* progress in a level */
+.prog{display:flex;gap:6px;justify-content:center;margin:4px 0 10px;flex-wrap:wrap}
+.pd{width:14px;height:14px;border-radius:50%;background:#e3e7fb}
+.pd.cur{background:var(--sun);transform:scale(1.25)}.pd.good{background:var(--zip)}.pd.bad{background:#ffb3bf}
+.lvstars{font:800 16px "Nunito",sans-serif;color:var(--muted);text-align:center}
+/* option buttons */
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:10px}
+.opt{border:3px solid #e3e7fb;background:#fff;border-radius:16px;padding:10px 12px;font:800 20px "Baloo 2",sans-serif;cursor:pointer;min-height:58px;display:flex;align-items:center;justify-content:center;gap:6px;text-align:center}
+.opt.right{background:#dcfbe9;border-color:var(--ok)}
+.opt.wrong{background:#ffe3e7;border-color:#f3a9b5}
+.opt:disabled{cursor:default}
+.shake{animation:shake .45s}
+@keyframes shake{20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
+/* map */
+.map{position:relative;width:min(100%,620px);aspect-ratio:1;margin:10px auto}
+.map .orb{position:absolute;inset:13%;border:3px dashed #d9d2ff;border-radius:50%}
+.map .sun{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:26%;text-align:center;font:800 15px "Baloo 2",sans-serif;color:var(--muted)}
+.map .planet{position:absolute;transform:translate(-50%,-50%);width:24%}
+.planet{border:0;background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;padding:6px 2px;font:800 16px "Baloo 2",sans-serif;color:var(--ink);text-align:center}
+.planet .ball{position:relative;width:96px;height:96px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:inset -14px -14px 0 rgba(0,0,0,.14),inset 8px 8px 0 rgba(255,255,255,.25),0 8px 18px rgba(0,0,0,.18);transition:transform .15s}
+.planet:hover .ball,.planet:active .ball{transform:scale(1.06)}
+.planet .ball::after{content:"";position:absolute;left:-14px;right:-14px;top:50%;height:22px;margin-top:-11px;border:4px solid rgba(255,255,255,.55);border-radius:50%;transform:rotate(-18deg);pointer-events:none}
+.planet .p-emo{font-size:46px;line-height:1;position:relative;z-index:1}
+.planet .p-lv{font-size:15px;color:var(--muted);line-height:1}.planet .p-t{font-size:17px;line-height:1.1}
+.planet .p-best{font:800 13px "Nunito",sans-serif;background:#fff6d9;border:2px solid #ffe08a;border-radius:999px;padding:1px 8px}
+@media (max-width:640px){.planet .ball{width:64px;height:64px}.planet .p-emo{font-size:28px}.planet .ball::after{left:-9px;right:-9px;height:14px;margin-top:-7px;border-width:3px}.planet .p-t{font-size:12px}.planet .p-lv{display:none}.map{margin:34px auto 30px}.map .planet{width:27%;gap:3px}.map .sun svg{width:70%}.planet .p-best{font-size:11px;padding:0 5px}.map .sun{font-size:12px}}
+.example{background:#eef7ff;border:2px dashed #9ed5f1;border-radius:14px;padding:8px 12px;font-size:18px;font-weight:700;margin:4px auto 10px;max-width:520px;text-align:center}
+.example .exw{display:inline-block;background:#fff;border:2px solid var(--violet);border-radius:10px;padding:0 10px;font-weight:800;color:var(--violet)}
+.example .arrow{margin:0 4px}
+/* start scene */
+.badge2{display:inline-block;background:var(--sun);color:var(--ink);font:800 15px "Nunito",sans-serif;padding:6px 14px;border-radius:999px;box-shadow:0 3px 0 #e0a800}
+.scene{position:relative;max-width:560px;margin:6px auto 0}
+.scene-svg{width:100%;display:block;overflow:hidden}
+.rocket{animation:fly 7s linear infinite}
+@keyframes fly{0%{transform:translate(-60px,110px) rotate(-14deg)}100%{transform:translate(460px,0px) rotate(-14deg)}}
+.smoke{animation:smoke 2.4s ease-in-out infinite}
+@keyframes smoke{0%,100%{transform:translateY(0);opacity:1}50%{transform:translateY(-6px);opacity:.6}}
+.blinkl{animation:bl 1.2s steps(2) infinite}@keyframes bl{50%{fill:#ffd36b}}
+.win{animation:winglow 2.6s ease-in-out infinite}.w2{animation-delay:.8s}.w3{animation-delay:1.6s}
+@keyframes winglow{50%{fill:#fff6c7}}
+.door{position:absolute;left:43.5%;width:13%;top:62%;height:24.5%;border:4px solid #2a86c4;border-bottom:0;border-radius:40px 40px 0 0;background:#ff9cc6;cursor:pointer;padding:0;transform-origin:left center;transition:transform .6s;z-index:2}
+.door .knob{position:absolute;right:16%;top:52%;width:9px;height:9px;border-radius:50%;background:#ffc93c}
+.door .dpanel{position:absolute;inset:18% 22% 30%;border:3px solid rgba(255,255,255,.55);border-radius:20px 20px 4px 4px}
+.door.knock{animation:knock .25s}@keyframes knock{30%{transform:translateX(-3px) rotate(-2deg)}70%{transform:translateX(3px) rotate(2deg)}}
+.door.open{background:#1f2340;pointer-events:none;animation:none}.door.open .dpanel,.door.open .knob{display:none}
+.door:not(.open){animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 8px rgba(255,201,60,.45)}}
+.zipout{position:absolute!important;left:37%;width:26%!important;top:46%;opacity:0;transform:translateY(30px) scale(.4);transition:all .5s cubic-bezier(.3,1.6,.5,1);z-index:1;animation:none!important}
+.zipout.show{opacity:1;transform:translateY(-8px) scale(1);z-index:3;filter:drop-shadow(0 0 0 #fff) drop-shadow(0 4px 6px rgba(0,0,0,.35))}
+.knocks{display:flex;gap:8px;justify-content:center;margin-top:8px}
+.knocks span{width:14px;height:14px;border-radius:50%;background:rgba(255,255,255,.25)}.knocks span.on{background:var(--sun)}
+/* start */
+.start-hero{text-align:center;color:#fff;padding:14px 0}
+.start-hero .zip{width:280px;max-width:62vw;margin:0 auto;display:block;animation:float 3s ease-in-out infinite}
+@keyframes float{50%{transform:translateY(-12px)}}
+.start-hero h1{font-size:44px;line-height:1.05;margin:6px 0}
+.story{background:#f6f3ff;border:3px solid #e2dcff;border-radius:18px;padding:12px 16px;margin:12px 0;display:grid;gap:8px;color:var(--ink);text-align:left}
+.story .r{display:flex;gap:12px;align-items:flex-start;font-size:17px;font-weight:700;line-height:1.35}
+.story .ic{font-size:26px;flex:0 0 32px}
+.story b{color:#5b47e0}
+/* warm-up photo */
+.photo{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;max-width:330px;margin:6px auto;background:#f6f3ff;border-radius:18px;padding:8px}
+.cell{position:relative;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:44px;background:#fff;border-radius:12px;overflow:hidden}
+.cell .cov{cursor:pointer;position:absolute;inset:0;background:linear-gradient(135deg,#8b7bff,#5ec8ff);display:flex;align-items:center;justify-content:center;font-size:26px;color:#fff;transition:opacity .35s}
+.cell.open .cov{opacity:0;pointer-events:none}
+.cell:not(.open) .cov{animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{50%{filter:brightness(1.15)}}
+/* house */
+.house{max-width:520px;margin:6px auto}
+.roof{height:0;border-left:50% solid transparent}
+.roofsvg{display:block;width:100%;height:auto}
+.rooms{display:grid;grid-template-columns:1fr 1fr;gap:8px;background:#d79b52;padding:8px;border-radius:0 0 16px 16px}
+.room{border:0;border-radius:12px;min-height:92px;cursor:pointer;font:800 17px "Baloo 2",sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;position:relative}
+.room .re{font-size:30px}
+.room.garden{grid-column:1/-1;background:#c9f2c9}
+.room.found{outline:4px solid var(--ok)}
+.room.miss{outline:4px solid #f3a9b5}
+.room .zp{position:absolute;right:6px;bottom:4px;width:40px}
+/* who card */
+.who-card{display:flex;align-items:center;justify-content:center;gap:10px;background:#f6f3ff;border-radius:18px;padding:12px;margin:6px 0}
+.game{border:3px dashed #e2dcff;border-radius:20px;padding:10px 12px 12px;margin-top:12px;background:#fcfbff}
+.gstars{display:inline-block;float:right;background:#fff6d9;border:2px solid #ffe08a;border-radius:999px;padding:2px 12px;font:800 16px "Nunito",sans-serif;color:var(--ink);letter-spacing:0}
+.center>.gstars{float:none;margin-bottom:6px}
+.bump{animation:bump .5s}@keyframes bump{40%{transform:scale(1.35)}}
+.gtag{font:800 13px "Nunito",sans-serif;color:#8b7bff;letter-spacing:1px;margin-bottom:2px}
+.rooms2{display:grid;grid-template-columns:1fr 1fr;gap:8px;background:#d79b52;padding:8px;border-radius:0 0 16px 16px}
+.rm{border-radius:12px;padding:6px;display:flex;flex-direction:column;align-items:center;gap:4px}
+.rm.garden{grid-column:1/-1}
+.rm .rl2{font:800 15px "Baloo 2",sans-serif}
+.rm .objs{display:flex;gap:8px}
+.obj{border:0;background:rgba(255,255,255,.65);border-radius:12px;width:64px;height:64px;font-size:38px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.obj.no{opacity:.3}.obj.yes{background:#dcfbe9;outline:3px solid var(--ok)}
+.obj svg{width:52px}
+.mem{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:8px}
+.mc{perspective:800px;height:118px;cursor:pointer;border:0;background:none;padding:0}
+.mc .in{position:relative;width:100%;height:100%;transition:transform .45s;transform-style:preserve-3d}
+.mc.open .in,.mc.done .in{transform:rotateY(180deg)}
+.mc .f{position:absolute;inset:0;-webkit-backface-visibility:hidden;backface-visibility:hidden;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:6px}
+.mc .bk{background:linear-gradient(135deg,#8b7bff,#5ec8ff);color:#fff;font-size:34px}
+.mc .fr{background:#fff;border:3px solid #e3e7fb;transform:rotateY(180deg);font:800 16px "Baloo 2",sans-serif;line-height:1.15}
+.mc .fr .pic{display:flex;align-items:flex-end;gap:2px;font-size:30px}
+.mc .fr .pic svg{width:42px}
+.mc.done .fr{border-color:var(--ok);background:#effcf6}
+.wheelbox{position:relative;max-width:260px;margin:6px auto}
+.pointer{position:absolute;left:50%;top:-6px;transform:translateX(-50%);font-size:28px;color:#e0455b;z-index:2}
+.wheel{width:100%;height:auto;transition:transform 2.6s cubic-bezier(.17,.67,.2,1)}
+.arena{position:relative;height:380px;background:linear-gradient(180deg,#1b1f4b,#3b3fa0);border-radius:18px;overflow:hidden;display:flex;align-items:center;justify-content:center;margin-top:6px}
+.bub{position:absolute;bottom:-100px;width:100px;height:100px;border-radius:50%;border:0;background:radial-gradient(circle at 35% 30%,#ffffff,#bfe8ff 45%,#7fc9f5);font:800 18px "Baloo 2",sans-serif;color:#1f2340;cursor:pointer;animation:rise linear forwards;display:flex;align-items:center;justify-content:center;text-align:center;padding:4px}
+.bub.pop{animation:pop2 .35s forwards}.bub.badtap{background:#ffd0d6}
+@keyframes rise{to{transform:translateY(-500px)}}
+@keyframes pop2{to{transform:scale(1.6);opacity:0}}
+.letter{background:#fffdf3;border:3px solid #f0e2b4;border-radius:16px;padding:12px 16px;font:700 19px "Nunito",sans-serif;line-height:1.5}
+.letter p{margin:2px 0}
+.tfs{display:grid;gap:8px;margin-top:10px}
+.tf{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:#f5f6ff;border-radius:14px;padding:8px 10px;font:800 18px "Baloo 2",sans-serif}
+.tf .s{flex:1;min-width:180px}
+.tf button{border:0;border-radius:12px;font:800 16px "Baloo 2",sans-serif;padding:8px 14px;cursor:pointer;background:#fff;box-shadow:0 3px 0 #d7dbf3;min-height:44px}
+.tf.right{background:#dcfbe9}.tf.wrong{background:#ffe3e7}
+@media (max-width:640px){.mem{grid-template-columns:repeat(3,minmax(0,1fr))}.mc{height:108px}.obj{width:56px;height:56px;font-size:32px}}
+.who-card .z{width:70px}
+.family{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;background:#f6f3ff;border-radius:18px;padding:10px;margin:0 0 10px}
+.fm{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;font:800 15px "Baloo 2",sans-serif;min-width:58px}
+.who-card .act{font-size:58px}
+.who-card .nm{font:800 22px "Baloo 2",sans-serif;background:#fff;border-radius:12px;padding:2px 12px}
+.q-big{font:800 24px "Baloo 2",sans-serif;text-align:center;margin:6px 0;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
+.gap{display:inline-block;min-width:52px;min-height:1.1em;vertical-align:bottom;border-bottom:4px solid var(--violet);text-align:center;color:var(--violet)}
+/* big word */
+.wordcard{text-align:center;background:#f6f3ff;border-radius:18px;padding:12px}
+.wordcard .e{font-size:60px;line-height:1.1}
+.wordcard .w{font:800 32px "Baloo 2",sans-serif}
+/* zip says */
+.cmd{font:800 40px "Baloo 2",sans-serif;text-align:center;padding:22px 10px;border-radius:24px;background:linear-gradient(135deg,#dff7ea,#d6ecff);min-height:160px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.cmd .emo{font-size:58px}.cmd .zs{color:var(--zipdark);font-size:28px}
+/* results */
+.result{display:none;margin-top:14px;border:3px solid #e2dcff;border-radius:20px;padding:14px;background:#fbfaff}
+.result.show{display:block}
+.result h3{font-size:26px;text-align:center}
+.bigstars{font-size:40px;text-align:center;letter-spacing:4px;margin:4px 0}
+.rlist{display:grid;gap:6px;margin:10px 0}
+.rl{display:flex;gap:8px;align-items:flex-start;background:#fff;border-radius:12px;padding:8px 10px;font-weight:800;font-size:16px;line-height:1.3}
+.rl .ic{font-size:18px;flex:none}
+.rl small{display:block;font-weight:700;color:var(--muted)}
+/* final badge */
+.badge{width:220px;height:220px;margin:0 auto;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff3b8,#ffc93c 55%,#f0a500);display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 0 0 10px #fff,0 0 0 18px #ffc93c,0 20px 50px rgba(0,0,0,.35);text-align:center;font-family:"Baloo 2",sans-serif}
+.badge .b1{font-size:14px;font-weight:800;color:#8a5a00;letter-spacing:1px}.badge .b2{font-size:30px;font-weight:800;color:#5a3a00;line-height:1}.badge .b3{font-size:42px}
+.cans{display:flex;flex-direction:column;gap:8px;max-width:520px;margin:12px auto}
+.can{border:3px solid #e3e7fb;background:#fff;border-radius:14px;padding:10px 14px;font:800 19px "Baloo 2",sans-serif;cursor:pointer;text-align:left;min-height:50px}
+.can.sel{background:#dcfbe9;border-color:var(--ok)}
+/* homework */
+.hwtabs{display:flex;gap:8px;margin:6px 0}
+.hwtab{border:0;border-radius:14px;padding:8px 18px;font:800 19px "Baloo 2",sans-serif;background:#eef1ff;box-shadow:0 4px 0 #c9cff0;cursor:pointer;min-height:48px}
+.hwtab.on{background:var(--violet);color:#fff;box-shadow:0 4px 0 #5b47e0}
+.hwp{display:none}.hwp.on{display:block}
+.things{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:8px 0}
+.thing{border:3px solid #e3e7fb;background:#fff;border-radius:14px;padding:6px 12px;font:800 17px "Nunito",sans-serif;cursor:pointer;min-height:48px;display:flex;align-items:center;gap:6px}
+.thing .e{font-size:26px}
+.thing.sel{border-color:var(--violet);background:#efeaff;transform:scale(1.06)}
+.thing.done{opacity:.35;pointer-events:none}
+.room .placed{font-size:20px;line-height:1}
+/* misc */
+.confetti{position:fixed;top:-20px;width:10px;height:16px;z-index:150;pointer-events:none;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+.starfly{position:fixed;z-index:160;font-size:32px;pointer-events:none;animation:starfly 1s ease forwards}
+@keyframes starfly{0%{transform:scale(.4);opacity:0}30%{transform:scale(1.4);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(.5);opacity:0}}
+.zip-wave .arm-r{transform-origin:150px 120px;animation:wave 1s ease-in-out infinite}
+@keyframes wave{50%{transform:rotate(-25deg)}}
+.blink .eye{animation:blink 4s infinite}
+@keyframes blink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
+.eye{transform-box:fill-box;transform-origin:center}
+select.voice{background:#eef1ff;border:0;border-radius:12px;padding:8px 10px;font:700 14px "Nunito",sans-serif;max-width:100%}
+#tmr{position:fixed;right:12px;bottom:12px;z-index:120;display:flex;align-items:center;gap:8px;background:rgba(20,22,60,.85);border-radius:999px;padding:5px 14px 5px 5px;color:#fff;font:700 14px "Nunito",sans-serif;cursor:pointer;user-select:none}
+#tmr svg{width:36px;height:36px;transform:rotate(-90deg)}
+#tmr .bg{fill:none;stroke:rgba(255,255,255,.2);stroke-width:4}
+#tmr .fg{fill:none;stroke-width:4;stroke-linecap:round;transition:stroke .4s}
+#tmr .t2{opacity:.75;font-weight:600;font-size:12px}
+#tmr.over{box-shadow:0 0 0 5px rgba(255,77,109,.5)}
+@media (max-width:640px){
+  .brand .bt{display:none}
+  .title{font-size:26px}.start-hero h1{font-size:34px}
+  .card{padding:14px}
+  .map{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .zipbox .zip{width:70px}.bubble{font-size:17px}
+  .goal{font-size:17px}
+  .cmd{font-size:32px}
+  #tmr{display:none}
+  .dots{display:none}
+  .brand{flex:1}
+  .q-big{font-size:21px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+#muteBtn.muted{background:#ffc93c;color:#1f2340}
+</style>
+</head>
+<body>
+<svg id="stars-bg"></svg>
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand"><span class="bz zipmini"></span><span class="bt">Mission: Help Zip!</span></div>
+    <div class="dots" id="dots"></div>
+    <select class="tb voicetb" id="voiceSel" title="Voice"></select>
+    <button class="tb" id="muteBtn" title="Zip talks by himself">🔈 Sound: on</button>
+    <button class="tb" data-go="map">🗺️ Map</button>
+    <button class="tb" data-go="hw">🕵️ Homework</button>
+    <a class="tb" href="words.html" style="text-decoration:none;display:inline-flex;align-items:center">🃏 Words</a>
+    <button class="tb" id="ruToggle" title="Show all Russian">RU: all</button>
+    <div class="starcount">⭐ <span id="stars">0</span>/<span id="starsMax">33</span></div>
+  </div>
+
+  <!-- START -->
+  <section class="screen active" data-s="start">
+    <div class="start-hero">
+      <div class="badge2">🕵️ Agent Susanna · Mission 2</div>
+      <h1>Zip's Space House</h1>
+      <div class="scene" id="scene">
+        <svg viewBox="0 0 400 260" class="scene-svg" aria-hidden="true">
+          <circle cx="330" cy="50" r="26" fill="#ffd36b"/><circle cx="320" cy="44" r="5" fill="#f2b84a"/><circle cx="338" cy="60" r="4" fill="#f2b84a"/>
+          <g class="rocket"><path d="M0 0 l26 -8 l10 8 l-10 8 z" fill="#ff7aa8"/><circle cx="18" cy="0" r="3.5" fill="#bfe8ff"/><path d="M0 -4 l-12 4 l12 4 z" fill="#ffc93c"/></g>
+          <ellipse cx="200" cy="268" rx="210" ry="52" fill="url(#gr)"/>
+          <defs><linearGradient id="gr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a98bff"/><stop offset="1" stop-color="#6a4cc2"/></linearGradient></defs>
+          <circle cx="80" cy="244" r="7" fill="#5a3fb0"/><circle cx="330" cy="248" r="10" fill="#5a3fb0"/><circle cx="300" cy="232" r="5" fill="#5a3fb0"/>
+          <g class="smoke"><circle cx="262" cy="70" r="7" fill="#fff" opacity=".7"/><circle cx="272" cy="56" r="9" fill="#fff" opacity=".5"/><circle cx="284" cy="40" r="11" fill="#fff" opacity=".3"/></g>
+          <rect x="252" y="78" width="18" height="34" rx="4" fill="#ff7aa8"/>
+          <path d="M120 222 L120 150 Q200 60 280 150 L280 222 Z" fill="#7cc8ff" stroke="#2a86c4" stroke-width="5"/>
+          <line x1="200" y1="88" x2="200" y2="62" stroke="#2a86c4" stroke-width="4"/><circle cx="200" cy="58" r="7" fill="#ff7aa8" class="blinkl"/>
+          <circle class="win" cx="152" cy="160" r="17" fill="#ffe58a" stroke="#2a86c4" stroke-width="4"/>
+          <circle class="win w2" cx="248" cy="160" r="17" fill="#ffe58a" stroke="#2a86c4" stroke-width="4"/>
+          <circle class="win w3" cx="200" cy="118" r="13" fill="#ffe58a" stroke="#2a86c4" stroke-width="4"/>
+        </svg>
+        <button class="door" id="door" aria-label="Door"><span class="dpanel"></span><span class="knob"></span></button>
+        <div class="zip zip-wave blink zipout" id="zipOut"></div>
+        <div class="knocks" id="knocks"><span></span><span></span><span></span></div>
+      </div>
+      <div class="card" style="text-align:left;margin:14px auto 0;max-width:640px">
+        <div class="goal" id="knockTask" style="margin:0">Knock on the door 3 times! <button class="rub">RU</button><div class="ru">Постучи в дверь Зипа 3 раза!</div></div>
+        <div class="zipbox" id="zipHello" style="margin-top:0;display:none"><div class="bubble">Hello, Agent Susanna! Welcome to my house! Come in! <button class="say" data-say="Hello, Agent Susanna! Welcome to my house! Come in!">🔊</button></div></div>
+        <div class="nav" style="justify-content:flex-end"><button class="btn green" data-go="warm" id="startBtn" style="visibility:hidden">Come in ▶</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MAP -->
+  <section class="screen" data-s="map">
+    <div class="card">
+      <span class="level-tag">MAP</span>
+      <h2 class="title">Zip's planet map</h2>
+      <div class="goal">Tap a planet. <button class="rub">RU</button><div class="ru">Нажми на планету.</div></div>
+      <div class="map" id="map"></div>
+      <div class="row" style="justify-content:space-between">
+        <button class="btn small" id="mapBack">◀ Back to the lesson</button>
+        <button class="btn small ghost" id="resetAll">🔁 Play again from the start</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- WARM-UP -->
+  <section class="screen" data-s="warm">
+    <div class="card">
+      <span class="level-tag">WARM-UP</span>
+      <h2 class="title">Mystery photo</h2>
+      <div class="goal">Tap ❓. What room is it? <button class="rub">RU</button><div class="ru">Нажми на ❓. Какая это комната?</div></div>
+      <div class="game"><div class="gtag">🎮 GAME</div>
+        <div class="zipbox"><div class="zip blink"></div><div class="bubble">What room is it? <button class="say" data-say="What room is it?">🔊</button></div></div>
+        <div class="prog" id="wProg"></div>
+        <div class="photo" id="wPhoto"></div>
+        <div class="opts" id="wOpts"></div>
+        <div class="talk" id="wTalk"></div>
+      </div>
+      <div class="result" id="wRes"></div>
+      <div class="nav"><button class="btn ghost" data-go="start">◀ Back</button><button class="btn green" data-go="l1">Level 1 ▶</button></div>
+    </div>
+  </section>
+
+  <!-- LEVEL 1 -->
+  <section class="screen" data-s="l1">
+    <div class="card">
+      <span class="level-tag">LEVEL 1</span>
+      <h2 class="title">Hide and seek</h2>
+      <div class="goal">Listen 🔊. Where is Zip? Tap a thing in that room. <button class="rub">RU</button><div class="ru">Послушай 🔊. Где Зип? Нажми на вещь в этой комнате.</div></div>
+      <div class="row" style="margin-bottom:6px"><button class="btn small blue" data-help="hFind">💡 Verb to be</button></div>
+      <div class="help" id="hFind"><button class="rub" style="float:right">RU</button>
+        <h4 class="rt">Verb <i>to be</i>: Are you…? — Yes, I am.</h4><div class="rts">Глагол to be: «Ты…?» — «Да.»</div>
+        <div class="ru"><b>Как спросить: «Ты в …?»</b><br>Are you…? — «Ты…?». Короткий ответ: Yes, I am. (Да.) / No, I'm not. (Нет.)<br>I'm sleeping — «я сплю» прямо сейчас. Окончание -ing показывает, что действие идёт сейчас.</div>
+        <div class="rrow"><span class="pill">Are you in the kitchen?</span> → Yes, I am. / No, I'm not.</div>
+        <div class="rrow"><span class="pill">I'm sleeping.</span> = I am sleeping.</div>
+        
+      </div>
+      <div class="game"><div class="gtag">🎮 GAME</div>
+        <div class="zipbox"><div class="zip blink"></div><div class="bubble"><span id="fClue">…</span> <button class="say" id="fSay">🔊</button></div></div>
+        <div class="prog" id="fProg"></div>
+        <div class="house">
+          <svg class="roofsvg" viewBox="0 0 520 90"><polygon points="10,88 260,4 510,88" fill="#ff6fa5"/><circle cx="260" cy="55" r="16" fill="#fff3b8"/><text x="260" y="62" text-anchor="middle" font-size="18">⭐</text></svg>
+          <div class="rooms2" id="fRooms"></div>
+        </div>
+        <div class="talk" id="fTalk"></div>
+      </div>
+      <div class="result" id="fRes"></div>
+      <div class="nav"><button class="btn ghost" data-go="warm">◀ Back</button><button class="btn green" data-go="l2">Level 2 ▶</button></div>
+    </div>
+  </section>
+
+  <!-- LEVEL 2 -->
+  <section class="screen" data-s="l2">
+    <div class="card">
+      <span class="level-tag">LEVEL 2</span>
+      <h2 class="title">Memory: Zip's family</h2>
+      <div class="goal">Find pairs: a picture and a sentence. Read the sentence! <button class="rub">RU</button><div class="ru">Найди пары: картинку и предложение к ней. Прочитай предложение!</div></div>
+      <div class="row" style="margin-bottom:6px"><button class="btn small blue" data-help="hIng">💡 Present Continuous</button></div>
+      <div class="help" id="hIng"><button class="rub" style="float:right">RU</button>
+        <h4 class="rt">Present Continuous</h4><div class="rts">Настоящее длительное время: что происходит сейчас</div>
+        <div class="ru"><b>Кто это? Что он делает сейчас?</b><br>he — он (мальчик, мужчина), she — она (девочка, женщина), it — оно (животное, вещь).<br>He's cooking = «он готовит» прямо сейчас. В вопросе is идёт вперёд: Is he cooking? Ответ короткий: Yes, he is. / No, he isn't. (isn't = is not)</div>
+        <div class="rcards">
+          <div class="rc"><div class="rh">he</div><div class="ra"><span data-av="Dad"></span><span data-av="Grandpa"></span><span data-av="Zip"></span></div><div class="rn">Dad · Grandpa · Zip</div></div>
+          <div class="rc"><div class="rh">she</div><div class="ra"><span data-av="Mum"></span><span data-av="Pip"></span></div><div class="rn">Mum · Pip</div></div>
+          <div class="rc"><div class="rh">it</div><div class="ra"><span style="font-size:34px">🐟</span></div><div class="rn">Bubble</div></div>
+        </div>
+        <div class="rex">
+          <div class="rx"><span class="ri">✅</span><b>He's cooking.</b><small>= He is cooking.</small></div>
+          <div class="rx"><span class="ri">🚫</span><b>He isn't sleeping.</b><small>= He is not sleeping.</small></div>
+          <div class="rx"><span class="ri">❓</span><b>Is he cooking?</b><span class="ans">👍 Yes, he is.</span><span class="ans">👎 No, he isn't.</span></div>
+        </div>
+      </div>
+      <div class="game"><div class="gtag">🎮 GAME</div>
+        <div class="zipbox"><div class="zip blink"></div><div class="bubble">This is my family! <button class="say" data-say="This is my family! This is my Dad, my Mum, my Grandpa, my sister Pip and my fish Bubble.">🔊</button></div></div>
+        <div class="family" id="family"></div>
+        <div class="lvstars" id="mMoves">Moves: 0</div>
+        <div class="mem" id="mGrid"></div>
+        <div class="talk" id="mTalk"></div>
+      </div>
+      <div class="result" id="mRes"></div>
+      <div class="nav"><button class="btn ghost" data-go="l1">◀ Back</button><button class="btn green" data-go="brk">Break ▶</button></div>
+    </div>
+  </section>
+
+  <!-- BREAK -->
+  <section class="screen" data-s="brk">
+    <div class="card">
+      <span class="level-tag">BREAK TIME</span>
+      <h2 class="title">Act it out!</h2>
+      <div class="goal">Act it out! Don't say the word. <button class="rub">RU</button><div class="ru">Покажи действие, но не называй его!</div></div>
+      <div class="game"><div class="gtag">🎮 GAME</div>
+      <div class="cmd" id="actCard"><span class="emo">🎭</span><span>Tap “New card”!</span></div>
+      <div class="center" style="margin-top:14px"><button class="btn pink" id="actNew">🃏 New card</button> <button class="btn ghost small" id="actHide">🙈 Hide</button></div>
+      <div class="talk"><div class="line"><span class="who zipw">❓ Teacher</span> Are you cooking?</div><div class="line"><span class="who you">🗣️ You</span> Yes, I am! / No, I'm not. I'm sleeping!</div></div>
+      </div>
+      <div class="nav"><button class="btn ghost" data-go="l2">◀ Back</button><button class="btn green" data-go="l3">Level 3 ▶</button></div>
+    </div>
+  </section>
+
+  <!-- LEVEL 3 -->
+  <section class="screen" data-s="l3">
+    <div class="card">
+      <span class="level-tag">LEVEL 3</span>
+      <h2 class="title">Spin the wheel</h2>
+      <div class="goal">Spin the wheel. Choose a word. Ask Zip! <button class="rub">RU</button><div class="ru">Раскрути колесо, выбери нужное слово и задай вопрос Зипу!</div></div>
+      <div class="row" style="margin-bottom:6px"><button class="btn small blue" data-help="hQ">💡 Questions</button></div>
+      <div class="help" id="hQ"><button class="rub" style="float:right">RU</button>
+        <h4 class="rt">Questions: small word first</h4><div class="rts">Вопросы: маленькое слово в начале</div>
+        <div class="ru">В английском вопросе маленькое слово стоит в начале.<br>
+        • Is there…? — «Там есть…?»: Is there a garden? — Там есть сад? Ответ: Yes, there is. / No, there isn't.<br>
+        • can — «могу, умею»: Can you cook? — Ты умеешь готовить?<br>
+        • have got — «у … есть»: Have you got a TV? — У тебя есть телевизор?<br>
+        • do — помощник для действий (clean, play, like, do). Сам не переводится: Do you clean your room? — Ты убираешь свою комнату?<br>
+        • Если есть вопросительное слово (where — где, what — что), оно идёт первым, а за ним маленькое слово: Where do you…? What is…?</div>
+        <div class="rrow"><span class="pill">Is there</span> a garden? → Yes, there is. / No, there isn't.</div>
+        <div class="rrow"><span class="pill">Can</span> you cook? → Yes, I can. / No, I can't.</div>
+        <div class="rrow"><span class="pill">Have</span> you got a TV? → Yes, I have. / No, I haven't.</div>
+        <div class="rrow"><span class="pill">Do</span> you clean your room? → Yes, I do. / No, I don't.</div>
+        <div class="rrow"><span class="pill">What is</span> your favourite room?</div>
+        
+      </div>
+      <div class="game"><div class="gtag">🎮 GAME</div>
+        <div class="example"><div><b>Example:</b> <span class="gap"></span> you happy?</div><div><span class="exw">Are</span> <span class="arrow">→</span> <b>Are you happy?</b> ✅</div></div>
+        <div class="wheelbox"><div class="pointer">▼</div><svg id="wheel" class="wheel" viewBox="0 0 200 200"></svg></div>
+        <div class="center" style="margin:8px 0"><button class="btn pink" id="spinBtn">🎡 Spin!</button></div>
+        <div class="prog" id="iProg"></div>
+        <div id="iCard" style="display:none">
+          <div class="wordcard"><div class="e" id="iEmo"></div><div class="q-big" id="iQ"></div><button class="rub">RU</button><div class="ru" id="iRu"></div></div>
+          <div class="opts" id="iOpts"></div>
+        </div>
+        <div class="talk" id="iTalk"></div>
+        <div class="center" style="margin-top:10px"><button class="btn pink small" id="iAns" style="display:none">👽 Zip answers</button></div>
+      </div>
+      <div class="result" id="iRes"></div>
+      <div id="iSwap" style="display:none;margin-top:14px">
+        <div class="goal">Listen 🔊 and answer Zip. <button class="rub">RU</button><div class="ru">Послушай 🔊 и ответь Зипу.</div></div>
+      <div class="zipbox"><div class="zip blink" style="width:70px"></div><div class="bubble">Now I ask YOU! <button class="say" data-say="Now I ask you!">🔊</button></div></div>
+        <div class="talk" id="zq"></div>
+      </div>
+      <div class="nav"><button class="btn ghost" data-go="brk">◀ Back</button><button class="btn green" data-go="l4">Level 4 ▶</button></div>
+    </div>
+  </section>
+
+  <!-- LEVEL 4 -->
+  <section class="screen" data-s="l4">
+    <div class="card">
+      <span class="level-tag">LEVEL 4</span>
+      <h2 class="title">Catch the sound</h2>
+      <div class="goal">Tap only the words with [w] 👄. Be quick! <button class="rub">RU</button><div class="ru">Нажимай только на слова со звуком [w] 👄. Быстрее!</div></div>
+      <div class="row" style="margin-bottom:6px"><button class="btn small blue" data-help="hSnd">💡 Sounds [w] and [v]</button></div>
+      <div class="help" id="hSnd"><button class="rub" style="float:right">RU</button>
+        <h4 class="rt">Sounds [w] and [v]</h4><div class="rts">Звуки [w] и [v]</div>
+        <div class="ru">[w] — губы вытягиваем трубочкой, как будто говорим «у», и сразу открываем рот: we — «уи». Зубы губу не трогают.<br>[v] — как русское «в»: верхние зубы касаются нижней губы.<br>Частая ошибка: говорить «ви» вместо «уи».</div>
+        <div class="rcards" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+          <div class="rc"><div class="rh">👄 [w]</div><div class="rn">😗 Make your lips round.<br>Teeth don't touch your lip.</div><div class="rx" style="justify-content:center">we · walk · word</div></div>
+          <div class="rc"><div class="rh">🦷 [v]</div><div class="rn">😬 Your top teeth touch your bottom lip.</div><div class="rx" style="justify-content:center">love · give · have</div></div>
+        </div>
+      </div>
+      <div class="game"><div class="gtag">🎮 GAME</div>
+        <div class="zipbox"><div class="zip blink"></div><div class="bubble">Help me! Catch the [w] words! <button class="say" data-say="Help me! Catch the W words!">🔊</button></div></div>
+        <div class="row" style="justify-content:space-between"><div class="lvstars" id="cScore">⭐ 0 / 7</div><div class="lvstars" id="cTime">⏱ 30</div></div>
+        <div class="arena" id="arena"><button class="btn green" id="cStart">▶ Start</button></div>
+        <div class="talk" id="cTalk"></div>
+      </div>
+      <div class="result" id="cRes"></div>
+      <div class="nav"><button class="btn ghost" data-go="l3">◀ Back</button><button class="btn green" data-go="bonus">Bonus level ▶</button></div>
+    </div>
+  </section>
+
+  <!-- BONUS -->
+  <section class="screen" data-s="bonus">
+    <div class="card">
+      <span class="level-tag" style="background:#ff6fa5">BONUS LEVEL</span>
+      <h2 class="title">Zip's letter</h2>
+      <div class="goal">Read Zip’s letter. Then tap True or False. <button class="rub">RU</button><div class="ru">Прочитай письмо Зипа. Потом нажми True (правда) или False (неправда).</div></div>
+      <div class="game"><div class="gtag">🎮 GAME</div>
+        <div class="letter"><button class="say" style="float:right" data-say="Hi, Susanna! I'm in my bedroom. I'm writing this letter. Mum is in the kitchen. She's making a cake. Dad is in the garden. He isn't cooking. He's reading! Pip is singing in the bathroom. Grandpa is sleeping on the sofa. Bye! Zip">🔊</button>
+          <p>Hi, Susanna!</p><p>I'm in my bedroom. I'm writing this letter.</p><p>Mum is in the kitchen. She's making a cake.</p><p>Dad is in the garden. He isn't cooking — he's reading!</p><p>Pip is singing in the bathroom.</p><p>Grandpa is sleeping on the sofa.</p><p>Bye! Zip 👽</p></div>
+        <div class="prog" id="bProg"></div>
+        <div class="tfs" id="bList"></div>
+      </div>
+      <div class="result" id="bRes"></div>
+      <div class="nav"><button class="btn ghost" data-go="l4">◀ Back</button><button class="btn green" data-go="final">Finish ▶</button></div>
+    </div>
+  </section>
+
+  <!-- FINAL -->
+  <section class="screen" data-s="final">
+    <div class="card center">
+      <span class="level-tag">MISSION COMPLETE</span>
+      <h2 class="title">Well done, Agent Susanna!</h2>
+      <div style="margin:18px 0 10px"><div class="badge"><div class="b1">HOUSE EXPLORER</div><div class="b2">Susanna</div><div class="b3">👽🏠</div><div class="b1">LEVEL 2</div></div></div>
+      <div class="bigstars" id="fBig"></div>
+      <div style="font:800 22px 'Baloo 2',sans-serif">⭐ <span id="fStars">0</span> / <span id="fMax">33</span></div>
+      <div class="lvstars" id="fBest"></div>
+      <div class="goal" style="text-align:left;margin-top:14px">What can you do now? Tap a card. Say it after Zip! <button class="rub">RU</button><div class="ru">Что ты теперь умеешь? Нажми на карточку и повтори за Зипом!</div></div>
+      <div class="cans">
+        <button class="can" data-t="I can talk about rooms in a house: kitchen, bedroom, bathroom.">🏠 I can talk about rooms in a house: <i>kitchen, bedroom…</i></button>
+        <button class="can" data-t="I can say what people are doing: He's cooking.">🍳 I can say what people are doing: <i>He's cooking.</i></button>
+        <button class="can" data-t="I can ask about a house: Is there a garden?">❓ I can ask about a house: <i>Is there a garden?</i></button>
+      </div>
+      <div class="zipbox" style="max-width:600px;margin:10px auto">
+        <div class="zip zip-wave blink"></div>
+        <div class="bubble">Thank you, Agent! Come to my house again! Bye-bye! <button class="say" data-say="Thank you, Agent! Come to my house again! Bye-bye!">🔊</button></div>
+      </div>
+      <div class="nav"><button class="btn ghost" data-go="bonus">◀ Back</button><button class="btn pink" id="partyBtn">🎉 Party!</button></div>
+    </div>
+  </section>
+
+  <!-- HOMEWORK -->
+  <section class="screen" data-s="hw">
+    <div class="card">
+      <span class="level-tag" style="background:#1b1f4b">HOMEWORK</span>
+      <h2 class="title">🕵️ Secret missions</h2>
+      <div class="hwtabs"><button class="hwtab on" data-p="0">🏠 1</button><button class="hwtab" data-p="1">🗣️ 2</button></div>
+
+      <div class="hwp on" data-p="0">
+        <h3 style="font-size:22px;margin:8px 0">Mission 1: Zip's dream house</h3>
+        <div class="goal">Put the things in the right rooms. Tap a thing, then tap a room. <button class="rub">RU</button><div class="ru">Расставь вещи по комнатам. Нажми на вещь, потом на комнату.</div></div>
+        <div class="zipbox"><div class="zip blink" style="width:70px"></div><div class="bubble" style="font-size:18px">I've got new things! Put them in my rooms, please! <button class="say" data-say="I've got new things! Put them in my rooms, please!">🔊</button></div></div>
+        <div class="example"><b>Example:</b> 🥚 egg <span class="arrow">→</span> <span class="exw">kitchen</span> ✅</div>
+        <div class="center"><span class="gstars" data-lvstar="hw">⭐ 0 / 10</span></div>
+        <div class="prog" id="dProg"></div>
+        <div class="things" id="dThings"></div>
+        <div class="house"><svg class="roofsvg" viewBox="0 0 520 90"><polygon points="10,88 260,4 510,88" fill="#8b7bff"/><circle cx="260" cy="55" r="16" fill="#fff3b8"/><text x="260" y="62" text-anchor="middle" font-size="18">⭐</text></svg><div class="rooms" id="dRooms"></div></div>
+        <div class="talk" id="dTalk"></div>
+        <div class="result" id="dRes"></div>
+        <div class="nav"><span></span><button class="btn green" data-hwp="1">Mission 2 ▶</button></div>
+      </div>
+
+      <div class="hwp" data-p="1">
+        <h3 style="font-size:22px;margin:8px 0">Mission 2: Tell Zip about your home</h3>
+        <div class="goal">Tell Zip about your home: 4 sentences. <button class="rub">RU</button><div class="ru">Расскажи о своём доме: 4 предложения.</div></div>
+        <div class="zipbox"><div class="zip blink" style="width:70px"></div><div class="bubble" style="font-size:18px">I want to see your home! Tell me about it! <button class="say" data-say="I want to see your home! Tell me about it!">🔊</button></div></div>
+        <div class="talk"><div class="line"><span class="who you">🗣️ You</span> In my home there's a <span class="gap">…</span> .</div>
+          <div class="line"><span class="who you">🗣️ You</span> There's a <span class="gap">…</span> in the <span class="gap">…</span> .</div>
+          <div class="line" style="font-size:17px;color:var(--muted)"><b>Example:</b> In my home there's a big kitchen. There's a computer in the living room. <button class="say" data-say="In my home there's a big kitchen. There's a computer in the living room.">🔊</button></div></div>
+        <div class="goal" style="margin-top:14px">Tell Zip about your bedroom: 3 sentences. <button class="rub">RU</button><div class="ru">Расскажи о своей спальне: 3 предложения.</div></div>
+        <div class="talk"><div class="line"><span class="who you">🗣️ You</span> In my bedroom there's a <span class="gap">…</span> and a <span class="gap">…</span> .</div>
+          <div class="line" style="font-size:17px;color:var(--muted)"><b>Example:</b> In my bedroom there's a bed and a lamp. My bedroom is pink. I like it! <button class="say" data-say="In my bedroom there's a bed and a lamp. My bedroom is pink. I like it!">🔊</button></div></div>
+        <div class="nav"><button class="btn ghost" data-hwp="0">◀ Mission 1</button><button class="btn pink" id="hwDone">🎉 Done!</button></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div id="tmr" title="Время на этом экране / всего. Двойное нажатие — сбросить перед уроком">
+  <svg viewBox="0 0 40 40"><circle class="bg" cx="20" cy="20" r="16"/><circle class="fg" id="tmrFg" cx="20" cy="20" r="16" stroke-dasharray="100.5" stroke-dashoffset="100.5"/></svg>
+  <div><div id="tmrStep">0:00 / 1 мин</div><div class="t2" id="tmrAll">всего 0:00 / 45</div></div>
+</div>
+
+<script>
+{
+/* ---------- Zip ---------- */
+function zipSVG(o){o=o||{};const B=o.body||"#5fd38d",L=o.belly||"#8ce6ae",D=o.dark||"#2fa866",A=o.acc||"";return `<svg viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;overflow:visible">
+<line x1="80" y1="40" x2="66" y2="8" stroke="${D}" stroke-width="6" stroke-linecap="round"/><line x1="120" y1="40" x2="134" y2="8" stroke="${D}" stroke-width="6" stroke-linecap="round"/>
+<circle cx="66" cy="8" r="9" fill="#ffc93c"/><circle cx="134" cy="8" r="9" fill="#ff6fa5"/>
+<g class="arm-l"><path d="M48 120 Q20 130 18 160" stroke="${B}" stroke-width="14" fill="none" stroke-linecap="round"/></g>
+<g class="arm-r"><path d="M152 120 Q182 100 186 74" stroke="${B}" stroke-width="14" fill="none" stroke-linecap="round"/></g>
+<ellipse cx="100" cy="125" rx="58" ry="70" fill="${B}"/><ellipse cx="100" cy="150" rx="34" ry="36" fill="${L}"/>
+<rect x="66" y="188" width="18" height="26" rx="9" fill="${D}"/><rect x="116" y="188" width="18" height="26" rx="9" fill="${D}"/>
+<g class="eye"><ellipse cx="70" cy="92" rx="15" ry="17" fill="#fff"/><circle cx="73" cy="95" r="7" fill="#1f2340"/><circle cx="76" cy="91" r="2.5" fill="#fff"/></g>
+<g class="eye"><ellipse cx="100" cy="78" rx="17" ry="19" fill="#fff"/><circle cx="103" cy="82" r="8" fill="#1f2340"/><circle cx="106" cy="77" r="2.8" fill="#fff"/></g>
+<g class="eye"><ellipse cx="130" cy="92" rx="15" ry="17" fill="#fff"/><circle cx="133" cy="95" r="7" fill="#1f2340"/><circle cx="136" cy="91" r="2.5" fill="#fff"/></g>
+<path d="M78 122 Q100 142 122 122" stroke="#1f2340" stroke-width="5" fill="none" stroke-linecap="round"/>
+<circle cx="62" cy="120" r="7" fill="#ff9fc2" opacity=".7"/><circle cx="138" cy="120" r="7" fill="#ff9fc2" opacity=".7"/>${acc(A)}</svg>`;}
+function acc(A){let s='';
+  if(A.includes('lashes'))s+='<path d="M58 72 l-6 -8 M70 70 l0 -9 M82 72 l6 -8 M118 72 l-6 -8 M130 70 l0 -9 M142 72 l6 -8" stroke="#1f2340" stroke-width="3" stroke-linecap="round"/>';
+  if(A.includes('bow'))s+='<path d="M80 50 L100 60 L80 70 Z M120 50 L100 60 L120 70 Z" fill="#ff3d8b"/><circle cx="100" cy="60" r="6" fill="#ff3d8b"/>';
+  if(A.includes('moustache'))s+='<path d="M76 116 Q88 106 100 114 Q112 106 124 116 Q112 112 100 118 Q88 112 76 116 Z" fill="'+(A.includes('white')?'#f4f4f4':'#5a3a1a')+'" stroke="#1f2340" stroke-width="1.5"/>';
+  if(A.includes('glasses'))s+='<g fill="none" stroke="#1f2340" stroke-width="4"><circle cx="70" cy="92" r="19"/><circle cx="130" cy="92" r="19"/><path d="M89 90 Q100 84 111 90"/></g>';
+  if(A.includes('tie'))s+='<path d="M82 136 L100 145 L82 154 Z M118 136 L100 145 L118 154 Z" fill="#ffc93c" stroke="#1f2340" stroke-width="2" stroke-linejoin="round"/><circle cx="100" cy="145" r="5" fill="#ffb000" stroke="#1f2340" stroke-width="2"/>';
+  if(A.includes('beard'))s+='<path d="M72 130 Q100 175 128 130 Q118 150 100 152 Q82 150 72 130 Z" fill="#f4f4f4"/>';
+  return s;}
+const PEOPLE={Zip:{s:46,c:70},Mum:{body:'#b08bff',belly:'#d9c9ff',dark:'#7a5be0',acc:'lashes bow',s:60,c:90},Dad:{body:'#4fb3f0',belly:'#a8e3ff',dark:'#2a86c4',acc:'moustache tie',s:70,c:104},
+  Pip:{body:'#ff9cc6',belly:'#ffd6e7',dark:'#e0558f',acc:'bow lashes',s:36,c:54},Grandpa:{body:'#a9b8b0',belly:'#dde6e0',dark:'#6f8a7a',acc:'glasses beard white',s:56,c:84}};
+document.querySelectorAll('.zip,.zipmini').forEach(z=>z.innerHTML=zipSVG());
+const $=id=>document.getElementById(id);
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+const esc=s=>String(s).replace(/"/g,'&quot;');
+{const s=$('stars-bg');let h='';for(let i=0;i<90;i++){h+=`<circle cx="${Math.random()*100}%" cy="${Math.random()*100}%" r="${Math.random()*1.6+.4}" fill="#fff" opacity="${Math.random()*.7+.2}"/>`;}s.innerHTML=h;}
+
+/* ---------- speech ---------- */
+let voice=null,voiceChoice='auto';
+try{voiceChoice=localStorage.getItem('zipVoice')||'auto';}catch(e){}
+function scoreVoice(v){if(!/^en/i.test(v.lang))return -1;let s=0;const n=v.name;
+  if(/natural|neural|online/i.test(n))s+=50;if(/premium|enhanced/i.test(n))s+=40;if(/google/i.test(n))s+=30;
+  if(/samantha|ava|allison|aria|jenny|serena|karen|daniel|moira|tessa|zira/i.test(n))s+=15;
+  if(/en[-_]US/i.test(v.lang))s+=6;else if(/en[-_]GB/i.test(v.lang))s+=5;
+  if(/compact|novelty|whisper|bad news|bells|boing|bubbles|cellos|zarvox|trinoids|albert|jester|organ|superstar|wobble|grandma|grandpa|rocko|shelley|flo|eddy|reed|sandy/i.test(n))s-=60;return s;}
+function voices(){try{return speechSynthesis.getVoices().filter(v=>scoreVoice(v)>=0).sort((a,b)=>scoreVoice(b)-scoreVoice(a));}catch(e){return[];}}
+function pickVoice(){const l=voices();voice=(voiceChoice!=='auto'&&l.find(v=>v.name===voiceChoice))||l[0]||null;
+  const sel=$('voiceSel');sel.innerHTML='<option value="auto">🔊 Voice: best</option>'+l.slice(0,25).map(v=>`<option value="${esc(v.name)}">${v.name}</option>`).join('');
+  sel.value=[...sel.options].some(o=>o.value===voiceChoice)?voiceChoice:'auto';}
+try{pickVoice();speechSynthesis.onvoiceschanged=pickVoice;}catch(e){}
+$('voiceSel').addEventListener('change',e=>{voiceChoice=e.target.value;try{localStorage.setItem('zipVoice',voiceChoice);}catch(_){}pickVoice();say('Hello! I am Zip.');});
+let zipMute=false;try{zipMute=localStorage.getItem('zipMute')==='1';}catch(e){}
+let lastSpeakTap=0;document.addEventListener('pointerdown',e=>{const b=e.target.closest('button');lastSpeakTap=(b&&b.textContent.includes('🔊'))?Date.now():0;},true);
+function muteDraw(){const m=document.getElementById('muteBtn');if(m){m.textContent=zipMute?'🔇 Sound: off':'🔈 Sound: on';m.classList.toggle('muted',zipMute);}}
+document.addEventListener('click',e=>{if(!e.target.closest('#muteBtn'))return;zipMute=!zipMute;try{localStorage.setItem('zipMute',zipMute?'1':'0');}catch(_){}muteDraw();if(zipMute)try{speechSynthesis.cancel();}catch(_){}});
+setTimeout(muteDraw,0);
+function say(t){if(zipMute&&Date.now()-lastSpeakTap>1500)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang=voice?voice.lang:'en-US';u.rate=.88;if(voice)u.voice=voice;speechSynthesis.speak(u);}catch(e){}}
+
+/* ---------- helpers ---------- */
+const zipLine=t=>`<div class="line"><span class="who zipw">👽 Zip</span> ${t}</div>`;
+const youLine=t=>`<div class="line"><span class="who you">🗣️ You</span> ${t}</div>`;
+function shake(el){el.classList.remove('shake');void el.offsetWidth;el.classList.add('shake');}
+function confetti(){const cols=['#ffc93c','#5fd38d','#ff6fa5','#5ec8ff','#8b7bff'];
+  for(let i=0;i<80;i++){const c=document.createElement('div');c.className='confetti';c.style.left=Math.random()*100+'vw';c.style.background=cols[i%5];
+    c.style.animationDuration=(1.8+Math.random()*1.8)+'s';c.style.animationDelay=(Math.random()*.6)+'s';c.style.borderRadius=Math.random()<.5?'50%':'2px';
+    document.body.appendChild(c);setTimeout(()=>c.remove(),4500);}}
+function starFly(el){const tg=document.querySelector('.screen.active [data-lvstar]')||document.querySelector('.starcount');const t=tg.getBoundingClientRect();setTimeout(()=>{tg.classList.remove('bump');void tg.offsetWidth;tg.classList.add('bump');},800);const r=el?el.getBoundingClientRect():{left:innerWidth/2,top:innerHeight/2,width:0,height:0};
+  const s=document.createElement('div');s.className='starfly';s.textContent='⭐';const x=r.left+r.width/2-16,y=r.top+r.height/2-16;
+  s.style.left=x+'px';s.style.top=y+'px';s.style.setProperty('--dx',(t.left-x)+'px');s.style.setProperty('--dy',(t.top-y)+'px');document.body.appendChild(s);setTimeout(()=>s.remove(),1200);}
+const store={get(k){try{return JSON.parse(localStorage.getItem('susanna:l2:'+k));}catch(e){return null;}},set(k,v){try{localStorage.setItem('susanna:l2:'+k,JSON.stringify(v));}catch(e){}}};
+
+/* ---------- scoring: a star only for a right answer on the first try ---------- */
+const LV={warm:{n:'Mystery photo',e:'📷',c:'#8b7bff',max:5},l1:{n:'Hide and seek',e:'🙈',c:'#5ec8ff',max:6},l2:{n:'Memory',e:'🃏',c:'#ff6fa5',max:6},
+  l3:{n:'Spin the wheel',e:'🎡',c:'#ffb020',max:6},l4:{n:'Catch the sound',e:'🫧',c:'#2fbf62',max:7},bonus:{n:"Zip's letter",e:'✉️',c:'#e0558f',max:5},hw:{n:'Dream house',e:'🏠',c:'#1b1f4b',max:10}};
+const LESSON=['warm','l1','l2','l3','l4','bonus'];
+const R={};
+function resetScore(k){R[k]={items:[],stars:0,tries:{}};}
+Object.keys(LV).forEach(resetScore);
+/* call on every answer; returns true if this answer is right */
+function answer(k,i,prompt,given,right,el){
+  const r=R[k];const ok=given===right;
+  if(!r.items[i]){r.items[i]={prompt,given,right,ok};if(ok){r.stars++;starFly(el);}}
+  updateStars();return ok;}
+function updateStars(){const s=LESSON.reduce((a,k)=>a+R[k].stars,0);$('stars').textContent=s;
+  document.querySelectorAll('[data-lvstar]').forEach(e=>{const k=e.dataset.lvstar;e.textContent='⭐ '+R[k].stars+' / '+LV[k].max;});
+  const best=LESSON.reduce((a,k)=>a+(store.get(k)||0),0);renderMap();}
+$('starsMax').textContent=LESSON.reduce((a,k)=>a+LV[k].max,0);
+function showResult(k,boxId,again,extra){
+  const r=R[k],max=LV[k].max;const prev=store.get(k)||0;if(r.stars>prev)store.set(k,r.stars);
+  const best=Math.max(prev,r.stars);const pct=r.stars/max;const big=pct>=.9?'⭐⭐⭐':pct>=.6?'⭐⭐':'⭐';
+  const list=r.items.filter(Boolean).map(x=>`<div class="rl"><span class="ic">${x.ok?'✅':'❌'}</span><div>${x.prompt}<small>${x.ok?'Your answer: '+x.given:'Your answer: '+x.given+' → Right: '+x.right}</small></div></div>`).join('');
+  const box=$(boxId);box.innerHTML=`<h3>${r.stars===max?'Super, Agent! 🎉':'Well done!'}</h3><div class="bigstars">${big}</div>
+    <div class="lvstars">⭐ ${r.stars} / ${max} · Your best: ${best} / ${max}</div>${extra||''}
+    <div class="center"><button class="rub">RU</button></div><div class="ru center">Звёзды: ${r.stars} из ${max}. Твой лучший результат: ${best} из ${max}. ✅ — правильно с первого раза, ❌ — была ошибка.</div>
+    <div class="rlist">${list}</div><div class="center"><button class="btn pink">🔁 Try again</button></div>`;
+  box.classList.add('show');box.querySelector('button').onclick=()=>{box.classList.remove('show');again();window.scrollTo({top:0,behavior:'smooth'});};
+  if(r.stars===max)confetti();renderMap();setTimeout(()=>box.scrollIntoView({behavior:'smooth',block:'start'}),250);}
+function prog(id,n,cur,k){$(id).innerHTML=Array.from({length:n},(_,i)=>{const it=R[k].items[i];return `<span class="pd${it?(it.ok?' good':' bad'):''}${i===cur?' cur':''}"></span>`;}).join('');}
+
+/* ---------- navigation (each screen has its own link: #map, #l1 …) ---------- */
+const SCREENS=['start','map','warm','l1','l2','brk','l3','l4','bonus','final','hw'];
+let cur='start',sStart=Date.now(),tStart=Date.now();
+function go(s,push){if(!SCREENS.includes(s))s='start';if(s!==cur){cur=s;sStart=Date.now();}
+  document.querySelectorAll('.screen').forEach(x=>x.classList.toggle('active',x.dataset.s===s));
+  if(push!==false){try{history.replaceState(null,'','#'+s);}catch(e){location.hash=s;}}
+  if(ORDER.includes(s))lastLesson=s;dotsUpd();
+  if(s==='final')showFinal();if(s==='map')renderMap();
+  window.scrollTo({top:0});tick();}
+window.addEventListener('hashchange',()=>go(location.hash.slice(1),false));
+document.addEventListener('click',e=>{
+  const g=e.target.closest('[data-go]');if(g){go(g.dataset.go);return;}
+  const sb=e.target.closest('[data-say]');if(sb)say(sb.dataset.say);
+  const hb=e.target.closest('[data-help]');if(hb)$(hb.dataset.help).classList.toggle('show');
+  const hp=e.target.closest('.hwtab,[data-hwp]');if(hp)hwShow(+(hp.dataset.hwp??hp.dataset.p));});
+const ruT=$('ruToggle');ruT.onclick=()=>{document.body.classList.toggle('ru-all');ruT.classList.toggle('on');};
+document.addEventListener('click',e=>{const b=e.target.closest('.rub');if(!b)return;const box=b.closest('.goal,.help,.wordcard,.result');if(box)box.classList.toggle('open');});
+const ORDER=['start','warm','l1','l2','brk','l3','l4','bonus','final'];let lastLesson='start';
+$('dots').innerHTML=ORDER.map((s,i)=>`<button class="dot" data-go="${s}" aria-label="Step ${i+1}"></button>`).join('');
+function dotsUpd(){const n=ORDER.indexOf(lastLesson);[...$('dots').children].forEach((d,i)=>d.className='dot'+(i<n?' done':'')+(ORDER[i]===cur?' on':''));}
+$('mapBack').onclick=()=>go(lastLesson);
+
+/* ---------- map ---------- */
+const MAPL=[['warm','WARM-UP'],['l1','LEVEL 1'],['l2','LEVEL 2'],['brk','BREAK'],['l3','LEVEL 3'],['l4','LEVEL 4'],['bonus','BONUS']];
+function renderMap(){const n=MAPL.length;$('map').innerHTML='<div class="orb"></div><div class="sun">'+zipSVG()+'Zip\'s house</div>'+MAPL.map(([k,t],idx)=>{const a=(idx/n)*2*Math.PI-Math.PI/2,x=50+37*Math.cos(a),y=50+37*Math.sin(a),pos=`style="left:${x.toFixed(1)}%;top:${y.toFixed(1)}%"`;
+  if(k==='brk')return `<button class="planet" ${pos} data-go="brk"><span class="ball" style="background:#ffc93c"><span class="p-emo">🎭</span></span><span class="p-lv">${t}</span><span class="p-t">Act it out!</span></button>`;
+  const b=store.get(k);return `<button class="planet" ${pos} data-go="${k}"><span class="ball" style="background:${LV[k].c}"><span class="p-emo">${LV[k].e}</span></span><span class="p-lv">${t}</span><span class="p-t">${LV[k].n}</span><span class="p-best">⭐ ${b!=null?b:0}/${LV[k].max}</span></button>`;}).join('');}
+$('resetAll').onclick=()=>{LESSON.forEach(k=>{resetScore(k);});wStart();fStart();mStart();iStart();cReset();bStart();updateStars();say("Let's play again!");};
+
+/* ---------- WARM-UP: What room is it? ---------- */
+const ROOMS={kitchen:'🍳',bedroom:'🛏️',bathroom:'🛁','living room':'🛋️',garden:'🌳'};
+const WPICS=[{r:'kitchen',p:'🍳🥛🍰🍽️🥄🧁🍎🫖🍞'},{r:'bedroom',p:'🛏️🧸🌙💤🪟📚🧦👚⏰'},{r:'bathroom',p:'🛁🚿🧼🪥🧽🪞🚽🧴🫧'},{r:'living room',p:'🛋️📺🪑🎮🖼️💡🪴📻🕹️'},{r:'garden',p:'🌳🌷🌻🐝🦋🌱🐞🌼🍂'}];
+let wOrder=[],wi=0,wCov=[];
+function wStart(){resetScore('warm');wOrder=shuffle(WPICS);wi=0;$('wRes').classList.remove('show');wShow();}
+function wShow(){const it=wOrder[wi];const em=[...new Intl.Segmenter().segment(it.p)].map(x=>x.segment);
+  wCov=shuffle([0,1,2,3,4,5,6,7,8]);
+  $('wPhoto').innerHTML=em.map((e,i)=>`<div class="cell" data-c="${i}">${e}<span class="cov">❓</span></div>`).join('');
+  open1();open1();
+  $('wOpts').innerHTML=Object.keys(ROOMS).map(r=>`<button class="opt" data-r="${r}">${r}</button>`).join('');
+  $('wTalk').innerHTML=youLine("It's the …!");prog('wProg',WPICS.length,wi,'warm');}
+function open1(){const c=wCov.shift();if(c==null)return;const el=$('wPhoto').querySelector(`[data-c="${c}"]`);if(el)el.classList.add('open');}
+$('wPhoto').addEventListener('click',e=>{const c=e.target.closest('.cell');if(!c||c.classList.contains('open'))return;c.classList.add('open');wCov=wCov.filter(x=>x!==+c.dataset.c);});
+$('wOpts').addEventListener('click',e=>{const b=e.target.closest('.opt');if(!b||b.disabled)return;const it=wOrder[wi],r=b.dataset.r;
+  const ok=answer('warm',wi,'📷 Photo '+(wi+1),'the '+r,'the '+it.r,b);
+  if(ok){b.classList.add('right');$('wPhoto').querySelectorAll('.cell').forEach(c=>c.classList.add('open'));
+    $('wOpts').querySelectorAll('.opt').forEach(x=>x.disabled=true);
+    $('wTalk').innerHTML=youLine(`It's the ${r}!`)+zipLine(`<span class="ok">Yes! It's the ${r}!</span>`);say(`Yes! It's the ${r}!`);
+    prog('wProg',WPICS.length,wi,'warm');
+    setTimeout(()=>{wi++;if(wi<wOrder.length)wShow();else showResult('warm','wRes',wStart);},1600);}
+  else{b.classList.add('wrong');b.disabled=true;shake(b);open1();$('wTalk').innerHTML=youLine(`It's the ${r}!`)+zipLine(`<span class="no">No, it isn't!</span> Open more ❓!`);say("No, it isn't!");prog('wProg',WPICS.length,wi,'warm');}});
+
+/* ---------- LEVEL 1: Hide and seek ---------- */
+const FIND=[{c:"I'm sleeping! Where am I?",r:'bedroom',a:"I'm sleeping"},{c:"I'm cooking! Where am I?",r:'kitchen',a:"I'm cooking"},
+  {c:"I'm having a bath! Where am I?",r:'bathroom',a:"I'm having a bath"},{c:"I'm watching TV! Where am I?",r:'living room',a:"I'm watching TV"},
+  {c:"I'm looking at the flowers! Where am I?",r:'garden',a:"I'm looking at the flowers"},{c:"I'm making a cake! Where am I?",r:'kitchen',a:"I'm making a cake"}];
+const RCOL={kitchen:'#fff1c2',bedroom:'#e6e0ff',bathroom:'#d9f1ff','living room':'#ffe1ec',garden:'#c9f2c9'};
+function roomsHTML(extra){return ['kitchen','bedroom','bathroom','living room','garden'].map(r=>`<button class="room${r==='garden'?' garden':''}" data-r="${r}" style="background:${RCOL[r]}"><span class="re">${ROOMS[r]}</span>${r}${extra?`<span class="placed" data-pl="${r}"></span>`:''}</button>`).join('');}
+const OBJS={kitchen:['🍽️','🥛'],bedroom:['🛏️','🧸'],bathroom:['🛁','🪞'],'living room':['🛋️','📺'],garden:['🌳','🌷']};
+let fi=0,fOrder=[];
+function fStart(){resetScore('l1');fOrder=shuffle(FIND);fi=0;$('fRes').classList.remove('show');fShow();}
+function fShow(){const it=fOrder[fi];$('fClue').textContent=it.c;
+  $('fRooms').innerHTML=Object.keys(OBJS).map(r=>`<div class="rm${r==='garden'?' garden':''}" style="background:${RCOL[r]}"><span class="rl2">${r}</span><div class="objs">${OBJS[r].map(o=>`<button class="obj" data-r="${r}">${o}</button>`).join('')}</div></div>`).join('');
+  $('fTalk').innerHTML=youLine('Are you in the …?');prog('fProg',FIND.length,fi,'l1');}
+$('fSay').onclick=()=>say($('fClue').textContent);
+$('fRooms').addEventListener('click',e=>{const b=e.target.closest('.obj');if(!b||b.disabled)return;const it=fOrder[fi],r=b.dataset.r;
+  const ok=answer('l1',fi,`“${it.c}”`,'the '+r,'the '+it.r,b);
+  if(ok){b.classList.add('yes');b.innerHTML=zipSVG();$('fRooms').querySelectorAll('.obj').forEach(x=>x.disabled=true);
+    $('fTalk').innerHTML=youLine(`Are you in the ${r}?`)+zipLine(`<span class="ok">Yes, I am! You found me!</span>`);say('Yes, I am! You found me!');prog('fProg',FIND.length,fi,'l1');
+    setTimeout(()=>{fi++;if(fi<fOrder.length)fShow();else showResult('l1','fRes',fStart);},1800);}
+  else{$('fRooms').querySelectorAll(`.obj[data-r="${r}"]`).forEach(x=>{x.classList.add('no');x.disabled=true;});shake(b);
+    $('fTalk').innerHTML=youLine(`Are you in the ${r}?`)+zipLine(`<span class="no">No, I'm not!</span> ${it.a}!`);say(`No, I'm not! ${it.a}!`);prog('fProg',FIND.length,fi,'l1');}});
+
+/* ---------- LEVEL 2: Memory ---------- */
+$('family').innerHTML=['Dad','Mum','Grandpa','Zip','Pip'].map(n=>`<div class="fm"><span style="width:${PEOPLE[n].s}px;display:inline-block">${zipSVG(PEOPLE[n])}</span><b>${n}</b></div>`).join('')+'<div class="fm"><span style="font-size:40px;line-height:58px">🐟</span><b>Bubble</b></div>';
+document.querySelectorAll('[data-av]').forEach(s=>{const P=PEOPLE[s.dataset.av];s.style.width=Math.round(P.s*.62)+'px';s.innerHTML=zipSVG(P);});
+const PAIRS=[{n:'Zip',e:'🍳',s:'Zip is cooking.'},{n:'Mum',e:'📖',s:'Mum is reading.'},{n:'Dad',e:'🛁',s:'Dad is having a bath.'},
+  {n:'Pip',e:'🎨',s:'Pip is drawing.'},{n:'Grandpa',e:'📺',s:'Grandpa is watching TV.'},{n:'Bubble',e:'🌊',s:'Bubble is swimming.'}];
+let mOpen=[],mMoves=0,mFound=0,mLock=false;
+function picHTML(p){return `<div class="pic">${PEOPLE[p.n]?zipSVG(PEOPLE[p.n]):'🐟'}<span>${p.e}</span></div><span style="font-size:13px">${p.n}</span>`;}
+function mStart(){resetScore('l2');mOpen=[];mMoves=0;mFound=0;mLock=false;$('mRes').classList.remove('show');$('mMoves').textContent='Moves: 0';$('mTalk').innerHTML='';
+  const cards=shuffle(PAIRS.flatMap((p,i)=>[{i,t:'pic'},{i,t:'txt'}]));
+  $('mGrid').innerHTML=cards.map(c=>`<button class="mc" data-i="${c.i}"><div class="in"><div class="f bk">❓</div><div class="f fr">${c.t==='pic'?picHTML(PAIRS[c.i]):PAIRS[c.i].s}</div></div></button>`).join('');}
+$('mGrid').addEventListener('click',e=>{const c=e.target.closest('.mc');if(!c||mLock||c.classList.contains('open')||c.classList.contains('done'))return;
+  c.classList.add('open');mOpen.push(c);if(mOpen.length<2)return;
+  mMoves++;$('mMoves').textContent='Moves: '+mMoves;const [a,b]=mOpen;mOpen=[];
+  if(a.dataset.i===b.dataset.i){const p=PAIRS[+a.dataset.i];a.classList.add('done');b.classList.add('done');mFound++;
+    R.l2.items[+a.dataset.i]={prompt:p.s,given:'pair found',right:'pair',ok:true};
+    $('mTalk').innerHTML=youLine(`Read it: <span class="ok">${p.s}</span>`);say(p.s);
+    if(mFound===PAIRS.length){const st=Math.max(1,Math.min(6,6-Math.floor((mMoves-6)/3)));R.l2.stars=st;updateStars();
+      setTimeout(()=>showResult('l2','mRes',mStart,`<div class="lvstars">Moves: ${mMoves} · fewer moves = more stars</div><div class="ru center">Ходов: ${mMoves}. Чем меньше ходов, тем больше звёзд.</div>`),900);}}
+  else{mLock=true;setTimeout(()=>{a.classList.remove('open');b.classList.remove('open');mLock=false;},950);}});
+
+/* ---------- BREAK: Act it out! ---------- */
+const ACTS=[['🍳','cooking'],['😴','sleeping'],['🛁','having a bath'],['📺','watching TV'],['🧹','cleaning'],['🏊','swimming'],['📖','reading'],['🥛','drinking milk'],['🍰','eating cake'],['🎤','singing'],['🎨','drawing'],['💃','dancing']];
+let actBag=[],actHidden=false;
+$('actNew').onclick=()=>{if(!actBag.length)actBag=shuffle(ACTS);const a=actBag.shift();actHidden=false;$('actHide').textContent='🙈 Hide';
+  $('actCard').innerHTML=`<span class="emo">${a[0]}</span><span>${a[1]}</span>`;$('actCard').dataset.w=a[1];};
+$('actHide').onclick=()=>{actHidden=!actHidden;$('actHide').textContent=actHidden?'👀 Show':'🙈 Hide';
+  $('actCard').style.filter=actHidden?'blur(14px)':'';};
+/* ---------- LEVEL 3: Spin the wheel ---------- */
+const IVQ=[{e:'🌳',f:'_ there a garden at your house?',o:['Is','Are','Do'],a:'Is',ru:'У твоего дома есть сад?',z:"Yes, there is! There are blue trees in my garden."},
+  {e:'🍳',f:'_ you cook?',o:['Can','Is','Have'],a:'Can',ru:'Ты умеешь готовить?',z:"Yes, I can! I can make a space cake."},
+  {e:'📺',f:'_ you got a TV in your bedroom?',o:['Have','Do','Is'],a:'Have',ru:'У тебя есть телевизор в спальне?',z:"No, I haven't. But I've got a big window. I can see the Moon!"},
+  {e:'📝',f:'Where _ you do your homework?',o:['do','is','are'],a:'do',ru:'Где ты делаешь домашнее задание?',z:"I do my homework in the kitchen."},
+  {e:'🧹',f:'_ you clean your bedroom?',o:['Do','Are','Have'],a:'Do',ru:'Ты убираешь свою спальню?',z:"Yes, sometimes! My robot helps me."},
+  {e:'❤️',f:'What _ your favourite room? Why?',o:['is','do','are'],a:'is',ru:'Какая твоя любимая комната? Почему?',z:"My bedroom! Because I can see the stars from my bed."}];
+const WCOL=['#ff6fa5','#5ec8ff','#ffc93c','#5fd38d','#8b7bff','#ff9a2e'];
+let iDone=[],iCur=-1,iRot=0;
+const fillQ=(f,w)=>f.replace('_',w);
+function wheelDraw(){let s='';const n=IVQ.length,R0=96;
+  for(let k=0;k<n;k++){const a0=(k*360/n-90)*Math.PI/180,a1=((k+1)*360/n-90)*Math.PI/180,am=((k+.5)*360/n-90)*Math.PI/180;
+    const x0=100+R0*Math.cos(a0),y0=100+R0*Math.sin(a0),x1=100+R0*Math.cos(a1),y1=100+R0*Math.sin(a1);
+    s+=`<path d="M100 100 L${x0.toFixed(1)} ${y0.toFixed(1)} A${R0} ${R0} 0 0 1 ${x1.toFixed(1)} ${y1.toFixed(1)} Z" fill="${WCOL[k]}" opacity="${iDone.includes(k)?.3:1}" stroke="#fff" stroke-width="3"/>`;
+    s+=`<text x="${(100+62*Math.cos(am)).toFixed(1)}" y="${(100+62*Math.sin(am)+9).toFixed(1)}" text-anchor="middle" font-size="26">${IVQ[k].e}</text>`;}
+  s+='<circle cx="100" cy="100" r="16" fill="#fff" stroke="#1f2340" stroke-width="3"/>';$('wheel').innerHTML=s;}
+function iProgDraw(){const order=[...iDone];if(iCur>=0&&!iDone.includes(iCur))order.push(iCur);
+  $('iProg').innerHTML=Array.from({length:IVQ.length},(_,n)=>{const k=order[n];const it=k!=null?R.l3.items[k]:null;
+    return `<span class="pd${it?(it.ok?' good':' bad'):''}${k!=null&&k===iCur&&!iDone.includes(k)?' cur':''}"></span>`;}).join('');}
+function iStart(){resetScore('l3');iDone=[];iCur=-1;$('iRes').classList.remove('show');$('iSwap').style.display='none';$('iCard').style.display='none';
+  $('iTalk').innerHTML='';$('iAns').style.display='none';$('spinBtn').disabled=false;wheelDraw();iProgDraw();}
+$('spinBtn').onclick=()=>{const left=IVQ.map((_,k)=>k).filter(k=>!iDone.includes(k));if(!left.length)return;
+  $('spinBtn').disabled=true;const k=left[Math.floor(Math.random()*left.length)];const seg=360/IVQ.length;
+  iRot+=360*4+(360-(iRot%360))-(k*seg+seg/2);$('wheel').style.transform=`rotate(${iRot}deg)`;
+  $('iCard').style.display='none';$('iTalk').innerHTML='';$('iAns').style.display='none';
+  setTimeout(()=>{iCur=k;iShow();},2700);};
+function iShow(){const it=IVQ[iCur];$('iCard').style.display='block';$('iEmo').textContent=it.e;$('iQ').innerHTML=it.f.replace('_','<span class="gap"></span>');$('iRu').textContent=it.ru;
+  $('iOpts').innerHTML=shuffle(it.o).map(o=>`<button class="opt" data-o="${o}">${o}</button>`).join('');iProgDraw();}
+$('iOpts').addEventListener('click',e=>{const b=e.target.closest('.opt');if(!b||b.disabled)return;const it=IVQ[iCur];
+  const ok=answer('l3',iCur,fillQ(it.f,'___'),b.dataset.o,it.a,b);
+  if(ok){b.classList.add('right');$('iOpts').querySelectorAll('.opt').forEach(x=>x.disabled=true);const q=fillQ(it.f,it.a);
+    $('iQ').innerHTML=it.f.replace('_',`<span class="gap">${it.a}</span>`)+` <button class="say" data-say="${esc(q)}">🔊</button>`;
+    $('iTalk').innerHTML=youLine(`Ask Zip: <span class="ok">${q}</span>`);$('iAns').style.display='inline-block';}
+  else{b.classList.add('wrong');b.disabled=true;shake(b);$('iTalk').innerHTML=zipLine('<span class="no">Hmm… try again!</span> <button class="btn small blue" data-help="hQ">💡</button>');say('Hmm... try again!');}
+  iProgDraw();});
+$('iAns').onclick=()=>{const it=IVQ[iCur];$('iTalk').innerHTML+=zipLine(it.z);say(it.z);$('iAns').style.display='none';iDone.push(iCur);wheelDraw();iProgDraw();
+  if(iDone.length===IVQ.length){$('spinBtn').disabled=true;setTimeout(()=>{showResult('l3','iRes',iStart);$('iSwap').style.display='block';},1200);}
+  else $('spinBtn').disabled=false;};
+const ZQ=['Is there a garden at your house?','Can you cook?','Have you got a TV in your bedroom?','Where do you do your homework?','Do you clean your bedroom?',"What's your favourite room? Why?"];
+$('zq').innerHTML=ZQ.map(q=>zipLine(`${q} <button class="say" data-say="${esc(q)}">🔊</button>`)).join('');
+
+
+/* ---------- LEVEL 4: Catch the sound ---------- */
+const WW=['window','white','watch','water','where','what','wave'],VV=['very','five','seven','eleven','TV'];
+let cTimer=null,cSpawn=null,cLeft=30,cCaught={},cOn=false;
+function cReset(){clearInterval(cTimer);clearInterval(cSpawn);cOn=false;resetScore('l4');cCaught={};cLeft=30;
+  $('arena').innerHTML='<button class="btn green" id="cStart">▶ Start</button>';$('cStart').onclick=cGo;$('cScore').textContent='⭐ 0 / 7';$('cTime').textContent='⏱ 30';$('cTalk').innerHTML='';$('cRes').classList.remove('show');}
+function cGo(){cReset();cOn=true;$('arena').innerHTML='';const q=shuffle([...WW,...WW,...VV,...VV,...VV]);let qi=0;
+  const spawn=()=>{if(qi>=q.length)return;const w=q[qi++];const b=document.createElement('button');b.className='bub';b.textContent=w;b.dataset.w=w;
+    b.style.left=(4+Math.random()*68)+'%';b.style.animationDuration=(5.2+Math.random()*1.6)+'s';
+    b.addEventListener('animationend',()=>{if(!b.classList.contains('pop'))b.remove();});$('arena').appendChild(b);};
+  spawn();cSpawn=setInterval(spawn,1000);
+  cTimer=setInterval(()=>{cLeft--;$('cTime').textContent='⏱ '+cLeft;if(cLeft<=0)cEnd();},1000);}
+$('cStart').onclick=cGo;
+$('arena').addEventListener('click',e=>{const b=e.target.closest('.bub');if(!b||!cOn||b.classList.contains('pop'))return;const w=b.dataset.w;say(w);
+  if(WW.includes(w)){b.classList.add('pop');setTimeout(()=>b.remove(),350);
+    if(!cCaught[w]){cCaught[w]=1;answer('l4',WW.indexOf(w),w,'caught','caught',b);}
+    $('cScore').textContent=`⭐ ${R.l4.stars} / 7`;$('cTalk').innerHTML=zipLine(`<span class="ok">Yes! [w] — ${w}!</span>`)+youLine(`Say it: <span class="ok">${w}</span>`);}
+  else{b.classList.add('badtap');shake(b);const k=7+VV.indexOf(w);if(!R.l4.items[k])R.l4.items[k]={prompt:w,given:'caught',right:'[v] — not [w]',ok:false};
+    $('cTalk').innerHTML=zipLine(`<span class="no">No! “${w}” has got [v] 🦷.</span>`);}});
+function cEnd(){clearInterval(cTimer);clearInterval(cSpawn);cOn=false;$('arena').querySelectorAll('.bub').forEach(b=>b.remove());
+  WW.forEach((w,i)=>{if(!R.l4.items[i])R.l4.items[i]={prompt:w,given:'not caught',right:'caught',ok:false};});
+  const wrong=VV.filter((_,j)=>R.l4.items[7+j]).length;R.l4.stars=Math.max(0,R.l4.stars-wrong);updateStars();
+  $('arena').innerHTML='<button class="btn green" id="cStart">🔁 Play again</button>';$('cStart').onclick=cGo;
+  showResult('l4','cRes',()=>{cReset();});}
+
+/* ---------- BONUS: Zip's letter ---------- */
+const TF=[{s:'Zip is in the kitchen.',a:false},{s:'Mum is making a cake.',a:true},{s:'Dad is cooking.',a:false},{s:'Pip is in the bathroom.',a:true},{s:'Grandpa is watching TV.',a:false}];
+function bStart(){resetScore('bonus');$('bRes').classList.remove('show');
+  $('bList').innerHTML=TF.map((t,i)=>`<div class="tf" id="tf${i}"><span class="s">${i+1}. ${t.s}</span><button data-i="${i}" data-v="1">✅ True</button><button data-i="${i}" data-v="0">❌ False</button></div>`).join('');prog('bProg',TF.length,-1,'bonus');}
+$('bList').addEventListener('click',e=>{const b=e.target.closest('button[data-i]');if(!b)return;const i=+b.dataset.i,t=TF[i],v=b.dataset.v==='1';
+  const row=$('tf'+i);if(row.classList.contains('right'))return;
+  const ok=answer('bonus',i,t.s,v?'True':'False',t.a?'True':'False',b);
+  row.classList.remove('wrong');row.classList.add(ok?'right':'wrong');if(!ok){shake(row);say('Read again!');}else say(['Yes!','Right!','Well done!'][i%3]);
+  prog('bProg',TF.length,-1,'bonus');
+  if(TF.every((_,k)=>$('tf'+k).classList.contains('right')))setTimeout(()=>showResult('bonus','bRes',bStart),700);});
+
+/* ---------- FINAL ---------- */
+function showFinal(){const s=LESSON.reduce((a,k)=>a+R[k].stars,0),m=LESSON.reduce((a,k)=>a+LV[k].max,0);
+  const best=LESSON.reduce((a,k)=>a+(store.get(k)||0),0);const p=s/m;
+  $('fStars').textContent=s;$('fMax').textContent=m;$('fBig').textContent=p>=.9?'⭐⭐⭐':p>=.6?'⭐⭐':'⭐';
+  $('fBest').textContent=`Your best on the map: ${best} / ${m}`;setTimeout(confetti,300);}
+document.querySelectorAll('.can').forEach(b=>b.onclick=()=>{b.classList.toggle('sel');if(b.classList.contains('sel'))say(b.dataset.t);});
+$('partyBtn').onclick=confetti;
+
+/* ---------- HOMEWORK: dream house ---------- */
+const THINGS=[{w:'bed',e:'🛏️',r:'bedroom'},{w:'teddy',e:'🧸',r:'bedroom'},{w:'sofa',e:'🛋️',r:'living room'},{w:'TV',e:'📺',r:'living room'},
+  {w:'bath',e:'🛁',r:'bathroom'},{w:'mirror',e:'🪞',r:'bathroom'},{w:'cake',e:'🎂',r:'kitchen'},{w:'milk',e:'🥛',r:'kitchen'},{w:'tree',e:'🌳',r:'garden'},{w:'flowers',e:'🌷',r:'garden'}];
+let dSel=null,dDone=0,dOrder=[];
+function dStart(){resetScore('hw');dSel=null;dDone=0;dOrder=shuffle(THINGS);$('dRes').classList.remove('show');
+  $('dThings').innerHTML=dOrder.map((t,i)=>`<button class="thing" data-i="${i}"><span class="e">${t.e}</span>${t.w}</button>`).join('');
+  $('dRooms').innerHTML=roomsHTML(true);$('dTalk').innerHTML=zipLine('Tap a thing!');prog('dProg',THINGS.length,-1,'hw');}
+$('dThings').addEventListener('click',e=>{const b=e.target.closest('.thing');if(!b)return;
+  $('dThings').querySelectorAll('.thing').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');dSel=+b.dataset.i;
+  const t=dOrder[dSel];say(t.w);$('dTalk').innerHTML=zipLine(`The ${t.w}! Which room? Tap it.`);});
+$('dRooms').addEventListener('click',e=>{const b=e.target.closest('.room');if(!b)return;
+  if(dSel==null){$('dTalk').innerHTML=zipLine('Tap a thing first! 👆');return;}
+  const t=dOrder[dSel],r=b.dataset.r;const ok=answer('hw',dSel,`${t.e} ${t.w}`,'the '+r,'the '+t.r,b);
+  if(ok){b.querySelector('.placed').textContent+=t.e;$('dThings').querySelector(`[data-i="${dSel}"]`).classList.add('done');dDone++;
+    const s=`There's a ${t.w} in the ${r}.`;$('dTalk').innerHTML=zipLine('<span class="ok">Yes!</span>')+youLine(`Say it: <span class="ok">${t.w==='flowers'?"There are flowers in the garden.":s}</span>`);
+    say(t.w==='flowers'?'There are flowers in the garden.':s);dSel=null;
+    const done=R.hw.items.map((x,i)=>i);prog('dProg',THINGS.length,-1,'hw');
+    if(dDone===THINGS.length)setTimeout(()=>showResult('hw','dRes',dStart),900);}
+  else{shake(b);$('dTalk').innerHTML=zipLine(`<span class="no">No, not in the ${r}!</span> Try again!`);say('No! Try again!');prog('dProg',THINGS.length,-1,'hw');}});
+function hwShow(k){document.querySelectorAll('.hwp').forEach(x=>x.classList.toggle('on',+x.dataset.p===k));document.querySelectorAll('.hwtab').forEach(x=>x.classList.toggle('on',+x.dataset.p===k));window.scrollTo({top:0});}
+$('hwDone').onclick=()=>{confetti();say('Super, Agent! Thank you!');};
+
+
+/* ---------- timer: minutes per screen, total 45 ---------- */
+const BUDGET={start:1,map:0,warm:4,l1:6,l2:8,brk:3,l3:9,l4:5,bonus:4,final:2,hw:3};
+const fmt=ms=>{const s=Math.floor(ms/1000);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');};
+function tick(){const now=Date.now(),bm=BUDGET[cur]||1,b=bm*60000,el=now-sStart,f=Math.min(1,el/b);
+  const fg=$('tmrFg');fg.style.strokeDashoffset=100.5*(1-f);fg.style.stroke=el>b?'#ff4d6d':f>.8?'#ffc93c':'#5fd38d';
+  $('tmr').classList.toggle('over',el>b);$('tmrStep').textContent=fmt(el)+' / '+(BUDGET[cur]||'–')+' мин';
+  const all=now-tStart;$('tmrAll').textContent='всего '+fmt(all)+' / 45'+(all>45*60000?' ⚠':'');}
+$('tmr').ondblclick=()=>{tStart=sStart=Date.now();tick();};
+setInterval(tick,1000);
+
+/* ---------- start: knock on the door ---------- */
+{let k=0;const d=$('door');d.addEventListener('click',()=>{if(k>=3)return;k++;say('Knock!');d.classList.remove('knock');void d.offsetWidth;d.classList.add('knock');
+  $('knocks').children[k-1].classList.add('on');
+  if(k===3)setTimeout(()=>{d.classList.add('open');$('zipOut').classList.add('show');$('knockTask').style.display='none';$('zipHello').style.display='';$("startBtn").style.visibility="visible";
+    say('Hello, Agent Susanna! Welcome to my house! Come in!');confetti&&confetti();},450);});}
+
+/* star counter inside each game */
+['warm','l1','l2','l3','bonus'].forEach(k=>{const g=document.querySelector(`.screen[data-s="${k}"] .gtag`);if(g)g.insertAdjacentHTML('beforeend',`<span class="gstars" data-lvstar="${k}">⭐ 0 / ${LV[k].max}</span>`);});
+updateStars();
+/* ---------- start everything ---------- */
+wStart();fStart();mStart();iStart();cReset();bStart();dStart();renderMap();updateStars();
+go(location.hash.slice(1)||'start',false);
+}
+</script>
+<script>document.addEventListener('click',function(e){var a=e.target.closest('a[href="words.html"]');if(!a)return;
+if(location.protocol==='file:'||/github\.io$/.test(location.hostname))return;
+e.preventDefault();window.open('https://claude.ai/artifact/UhnCtMGy4WbPr6omzQ2ts2','_blank');});</script>
+</body>
+</html>
